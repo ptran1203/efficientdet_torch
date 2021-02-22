@@ -99,7 +99,7 @@ class Fitter:
         self.model.train()
         summary_loss = AverageMeter()
         t = time.time()
-        for step, (images, targets, image_ids) in  tqdm(enumerate(train_loader)):
+        for step, (images, targets, image_ids) in  enumerate(tqdm(train_loader)):
             if self.config.verbose:
                 if step % self.config.verbose_step == 0:
                     print(
