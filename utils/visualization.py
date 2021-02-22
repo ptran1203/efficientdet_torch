@@ -1,6 +1,7 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 from const import LABEL_MAP
+import numpy as np
 
 def visualize_detections(
     image, boxes, classes, scores=None, figsize=(6, 6), linewidth=1, class_map=LABEL_MAP,
