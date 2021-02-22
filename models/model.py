@@ -157,7 +157,7 @@ def get_model(phi, num_classes, image_size):
     config = get_efficientdet_config(f'tf_efficientdet_d{phi}')
     net = EfficientDet(config, pretrained_backbone=True)
     config.num_classes = num_classes
-    config.image_size = num_classes
+    config.image_size = image_size
     net.class_net = HeadNet(config,
         num_outputs=config.num_classes,
         norm_kwargs=dict(eps=.001, momentum=.01))
@@ -167,7 +167,7 @@ def get_model(phi, num_classes, image_size):
 def collate_fn(batch):
     return tuple(zip(*batch))
 
-def run_training(model, TrainGlobalConfig, train_dataset, val_dataset):
+def run_training(e):
     device = torch.device('cuda:0')
     model.to(device)
 
