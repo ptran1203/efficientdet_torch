@@ -7,6 +7,7 @@ from utils import AverageMeter
 from torch.utils.data.sampler import SequentialSampler, RandomSampler
 from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain
 from effdet.efficientdet import HeadNet
+from tqdm import tqdm
 
 
 class Fitter:
@@ -98,7 +99,7 @@ class Fitter:
         self.model.train()
         summary_loss = AverageMeter()
         t = time.time()
-        for step, (images, targets, image_ids) in enumerate(train_loader):
+        for step, (images, targets, image_ids) in  tqdm(enumerate(train_loader)):
             if self.config.verbose:
                 if step % self.config.verbose_step == 0:
                     print(
