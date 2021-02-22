@@ -167,7 +167,7 @@ def get_model(phi, num_classes, image_size):
 def collate_fn(batch):
     return tuple(zip(*batch))
 
-def run_training(e):
+def run_training(model, TrainGlobalConfig, train_dataset, val_dataset):
     device = torch.device('cuda:0')
     model.to(device)
 
