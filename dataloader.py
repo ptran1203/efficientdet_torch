@@ -1,13 +1,27 @@
 
+from torch.utils.data import Dataset
+import torch
+import numpy as np
+import cv2
 class DatasetRetriever(Dataset):
 
-    def __init__(self, marking, image_ids, transforms=None, test=False):
+    def __init__(
+        self,
+        marking,
+        image_ids,
+        transforms=None,
+        test=False,
+        root_path='/content',
+        fold_dict={}
+    ):
         super().__init__()
 
         self.image_ids = image_ids
         self.marking = marking
         self.transforms = transforms
         self.test = test
+        self.root_path = root_path
+        self.fold_dict = fold_dict
 
     def __getitem__(self, index: int):
         image_id = self.image_ids[index]
@@ -38,8 +52,8 @@ class DatasetRetriever(Dataset):
 
     def load_image_and_boxes(self, index):
         image_id = self.image_ids[index]        
-        fold_id = fold_dict[image_id]
-        image = cv2.imread(f'{TRAIN_ROOT_PATH}/fold{fold_id}/{image_id}.jpg', cv2.IMREAD_COLOR).copy().astype(np.float32)
+        fold_id = self.fold_dict[image_id]
+        image = cv2.imread(f'{self.root_path}/fold{fold_id}/{image_id}.jpg', cv2.IMREAD_COLOR).copy().astype(np.float32)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
         image /= 255.0
         records = self.marking[self.marking['image_id'] == image_id]
