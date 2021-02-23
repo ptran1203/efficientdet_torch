@@ -3,12 +3,11 @@ import torch
 import time
 import os
 from datetime import datetime
-from utils import AverageMeter
 from torch.utils.data.sampler import SequentialSampler, RandomSampler
 from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain
 from effdet.efficientdet import HeadNet
 from tqdm import tqdm, tqdm_notebook
-
+from utils import AverageMeter
 
 class Fitter:
 
@@ -49,13 +48,13 @@ class Fitter:
             t = time.time()
             summary_loss = self.train_one_epoch(train_loader)
 
-            self.log(f'[RESULT]: Train. Epoch: {self.epoch}, summary_loss: {summary_loss.avg:.5f}, time: {(time.time() - t):.5f}')
-            # self.save(f'/content/{self.model_name}.bin')
+            self.log_each_epoch(t, summary_loss, lr)
 
             t = time.time()
             summary_loss = self.validation(validation_loader)
 
-            self.log(f'[RESULT]: Val. Epoch: {self.epoch}, summary_loss: {summary_loss.avg:.5f}, time: {(time.time() - t):.5f}')
+            self.log_each_epoch(t, summary_loss, is_training=False)
+
             if summary_loss.avg < self.best_summary_loss:
                 self.best_summary_loss = summary_loss.avg
                 self.model.eval()
@@ -67,6 +66,7 @@ class Fitter:
                     pass
 
                 f = f'/content/{self.model_name}.bin'
+                self.log(f'Val loss improved from {self.best_summary_loss} to {summary_loss.avg}, save checkpoint to {f}')
 
             if self.config.validation_scheduler:
                 self.scheduler.step(metrics=summary_loss.avg)
@@ -76,15 +76,7 @@ class Fitter:
     def validation(self, val_loader):
         self.model.eval()
         summary_loss = AverageMeter()
-        t = time.time()
         for step, (images, targets, image_ids) in enumerate(val_loader):
-            if self.config.verbose:
-                if step % self.config.verbose_step == 0:
-                    print(
-                        f'Val Step {step}/{len(val_loader)}, ' + \
-                        f'summary_loss: {summary_loss.avg:.5f}, ' + \
-                        f'time: {(time.time() - t):.5f}', end='\r'
-                    )
             with torch.no_grad():
                 images = torch.stack(images)
                 batch_size = images.shape[0]
@@ -103,14 +95,7 @@ class Fitter:
         t = time.time()
         # train on colab use tqdm_notebook
         for step, (images, targets, image_ids) in  enumerate(tqdm_notebook(train_loader)):
-            if self.config.verbose:
-                if step % self.config.verbose_step == 0:
-                    print(
-                        f'Train Step {step}/{len(train_loader)}, ' + \
-                        f'summary_loss: {summary_loss.avg:.5f}, ' + \
-                        f'time: {(time.time() - t):.5f}', end='\r'
-                    )
-            
+
             images = torch.stack(images)
             images = images.to(self.device).float()
             batch_size = images.shape[0]
@@ -150,11 +135,18 @@ class Fitter:
         self.best_summary_loss = checkpoint['best_summary_loss']
         self.epoch = checkpoint['epoch'] + 1
         
+
+    def log_each_epoch(self, t, loss, lr=None, is_training=True):
+        stage = 'train' if is_training else 'val'
+
+        self.log(f"\nEpoch - [{self.epoch}/{self.config.n_epochs}] - {(time.time() - t):.5f}")
+        if lr is not None:
+            self.log(f"Learning rate : {lr[-1]:.4e} ")
+        self.log(f":{stage} loss - {loss.avg:.5f}")
+
     def log(self, message):
         if self.config.verbose:
             print(message)
-        with open(self.log_path, 'a+') as logger:
-            logger.write(f'{message}\n')
 
 
 def get_model(phi, num_classes, image_size):
