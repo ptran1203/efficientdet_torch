@@ -67,7 +67,7 @@ class Fitter:
             if self.config.validation_scheduler:
                 self.scheduler.step(metrics=summary_loss.avg)
 
-            self.epoch += 
+            self.epoch += 1
 
         self._plot_lr()
 
