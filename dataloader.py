@@ -106,10 +106,10 @@ class DatasetRetriever(Dataset):
             padw = x1a - x1b
             padh = y1a - y1b
 
-            box[:, 0] += padw
-            box[:, 1] += padh
-            box[:, 2] += padw
-            box[:, 3] += padh
+            boxes[:, 0] += padw
+            boxes[:, 1] += padh
+            boxes[:, 2] += padw
+            boxes[:, 3] += padh
 
             result_boxes.append(boxes)
             result_labels.append(labels)
@@ -118,7 +118,7 @@ class DatasetRetriever(Dataset):
         result_labels = np.concatenate(result_labels, 0)
         np.clip(result_boxes[:, 0:], 0, 2 * s, out=result_boxes[:, 0:])
         result_boxes = result_boxes.astype(np.int32)
-        valid_indices = np.where((result_boxes[:,2]-result_boxes[:,0])*(result_boxes[:,3]-result_boxes[:,1]) > 0)
+        valid_indices = np.where((result_boxes[:, 2] - result_boxes[:, 0]) * (result_boxes[:, 3]-result_boxes[:, 1]) > 0)
         result_boxes = result_boxes[valid_indices]
         result_labels = result_labels[valid_indices]
 
