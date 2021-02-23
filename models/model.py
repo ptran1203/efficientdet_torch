@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 class Fitter:
 
-    def __init__(self, model, device, config, base_dir='/content', model_name='effdet'):
+    def __init__(self, model, device, config, base_dir='/content'):
         self.config = config
         self.epoch = 0
 
@@ -22,7 +22,6 @@ class Fitter:
         
         self.log_path = f'{self.base_dir}/log.txt'
         self.best_summary_loss = 10**5
-        self.model_name = model_name
 
         self.model = model
         self.device = device
@@ -60,7 +59,7 @@ class Fitter:
 
             if summary_loss.avg < self.best_summary_loss:
                 self.model.eval()
-                save_path = f'{self.base_dir}/{self.model.name}.bin'
+                save_path = f'{self.base_dir}/{self.config.model_name}.bin'
                 self.log(f'Val loss improved from {self.best_summary_loss} to {summary_loss.avg}, save checkpoint to {save_path}')
                 self.best_summary_loss = summary_loss.avg
                 self.save(save_path)
