@@ -16,7 +16,7 @@ class Fitter:
         self.config = config
         self.epoch = 0
 
-        self.base_dir = f'./{config.folder}'
+        self.base_dir = config.folder
         if not os.path.exists(self.base_dir):
             os.makedirs(self.base_dir)
         
@@ -65,8 +65,8 @@ class Fitter:
                 self.save(save_path)
                 self.log(f'Val loss improved from {self.best_summary_loss} to {summary_loss.avg}, save checkpoint to {save_path}')
 
-            if self.config.validation_scheduler:
-                self.scheduler.step(metrics=summary_loss.avg)
+            # if self.config.validation_scheduler:
+            #     self.scheduler.step()
 
             self.epoch += 1
 
@@ -165,7 +165,7 @@ def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False)
         num_outputs=config.num_classes,
         norm_kwargs=dict(eps=.001, momentum=.01))
 
-    if checkpoint_path:
+    if checkpoint_path and os.path.isfile(checkpoint_path):
         import gc
         checkpoint = torch.load(checkpoint_path)
         net.load_state_dict(checkpoint['model_state_dict'])
