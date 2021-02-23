@@ -59,11 +59,11 @@ class Fitter:
             self.log_each_epoch(t, summary_loss, is_training=False)
 
             if summary_loss.avg < self.best_summary_loss:
-                self.best_summary_loss = summary_loss.avg
                 self.model.eval()
                 save_path = f'{self.base_dir}/{self.model_name}.bin'
-                self.save(save_path)
                 self.log(f'Val loss improved from {self.best_summary_loss} to {summary_loss.avg}, save checkpoint to {save_path}')
+                self.best_summary_loss = summary_loss.avg
+                self.save(save_path)
 
             # if self.config.validation_scheduler:
             #     self.scheduler.step(metrics=1)
