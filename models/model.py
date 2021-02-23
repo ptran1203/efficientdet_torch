@@ -75,7 +75,7 @@ class Fitter:
     def validation(self, val_loader):
         self.model.eval()
         summary_loss = AverageMeter()
-        for step, (images, targets, image_ids) in enumerate(tqdm_notebook(val_loader)):
+        for step, (images, targets, image_ids) in enumerate(val_loader):
             with torch.no_grad():
                 images = torch.stack(images)
                 batch_size = images.shape[0]
