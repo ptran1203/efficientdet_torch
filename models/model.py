@@ -4,7 +4,7 @@ import time
 import os
 from datetime import datetime
 from torch.utils.data.sampler import SequentialSampler, RandomSampler
-from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain
+from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain, DetBenchEval
 from effdet.efficientdet import HeadNet
 from tqdm import tqdm, tqdm_notebook
 from utils import AverageMeter
@@ -149,7 +149,7 @@ class Fitter:
             print(message)
 
 
-def get_model(phi, num_classes, image_size):
+def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False):
     config = get_efficientdet_config(f'tf_efficientdet_d{phi}')
     net = EfficientDet(config, pretrained_backbone=True)
     config.num_classes = num_classes
@@ -158,7 +158,20 @@ def get_model(phi, num_classes, image_size):
         num_outputs=config.num_classes,
         norm_kwargs=dict(eps=.001, momentum=.01))
 
+    if checkpoint_path:
+        import gc
+        checkpoint = torch.load(checkpoint_path)
+        net.load_state_dict(checkpoint['model_state_dict'])
+        del checkpoint
+        gc.collect()
+
+    if is_inference:
+        net = DetBenchEval(net, config)
+        net.eval()
+        return net.cuda()
+
     return DetBenchTrain(net, config)
+
 
 def collate_fn(batch):
     return tuple(zip(*batch))
