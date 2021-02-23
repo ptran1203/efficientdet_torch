@@ -8,6 +8,7 @@ from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain, DetBenc
 from effdet.efficientdet import HeadNet
 from tqdm import tqdm, tqdm_notebook
 from utils import AverageMeter
+import matplotlib.pyplot as plt
 
 class Fitter:
 
@@ -35,7 +36,9 @@ class Fitter:
 
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=config.lr)
         self.scheduler = config.SchedulerClass(self.optimizer, **config.scheduler_params)
+        self.lr_list = []
         self.log(f'Fitter prepared. Device is {self.device}')
+        
 
     def fit(self, train_loader, validation_loader):
         for e in range(self.config.n_epochs):
@@ -43,6 +46,7 @@ class Fitter:
                 lr = self.optimizer.param_groups[0]['lr']
                 timestamp = datetime.utcnow().isoformat()
                 self.log(f'\n{timestamp}\nLR: {lr}')
+                self.lr_list.append(lr)
             
             t = time.time()
             summary_loss = self.train_one_epoch(train_loader)
@@ -63,7 +67,9 @@ class Fitter:
             if self.config.validation_scheduler:
                 self.scheduler.step(metrics=summary_loss.avg)
 
-            self.epoch += 1
+            self.epoch += 
+
+        self._plot_lr()
 
     def validation(self, val_loader):
         self.model.eval()
@@ -128,17 +134,25 @@ class Fitter:
         self.epoch = checkpoint['epoch'] + 1
         
 
-    def log_each_epoch(self, t, loss, lr=None, is_training=True):
+    def log_each_epoch(self, t, loss, is_training=True):
         stage = 'train' if is_training else 'val'
 
         self.log(f"\nEpoch - [{self.epoch}/{self.config.n_epochs}] - {(time.time() - t):.5f}")
-        if lr is not None:
-            self.log(f"Learning rate : {lr[-1]:.4e} ")
+        if is_training:
+            self.log(f"Learning rate : {self.lr_list[-1]:.4e} ")
         self.log(f":{stage} loss - {loss.avg:.5f}")
 
     def log(self, message):
         if self.config.verbose:
             print(message)
+
+    def _plot_lr(self):
+        plt.figure(figsize=(10, 6))
+        plt.plot(self.lr_list)
+        plt.xlabel('epoch')
+        plt.ylabel('Learning rate')
+        plt.suptitle(self.scheduler.name)
+        plt.show()
 
 
 def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False):
