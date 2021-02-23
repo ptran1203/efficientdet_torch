@@ -35,8 +35,7 @@ class DatasetRetriever(Dataset):
             image, boxes, labels = self.load_image_and_boxes(index)
         else:
             image, boxes, labels = self.load_mosaic(index)
-        
-        print(labels)
+
         target = {}
         target['boxes'] = boxes
         target['labels'] = torch.tensor(labels)
