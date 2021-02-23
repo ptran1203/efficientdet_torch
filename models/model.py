@@ -58,14 +58,14 @@ class Fitter:
             if summary_loss.avg < self.best_summary_loss:
                 self.best_summary_loss = summary_loss.avg
                 self.model.eval()
-                self.save(f'/content/{self.model_name}.bin')
+                self.save(f'{self.base_dir}/{self.model_name}.bin')
 
                 try:
                     os.remove(f)
                 except:
                     pass
 
-                f = f'/content/{self.model_name}.bin'
+                f = f'{self.base_dir}/{self.model_name}.bin'
                 self.log(f'Val loss improved from {self.best_summary_loss} to {summary_loss.avg}, save checkpoint to {f}')
 
             if self.config.validation_scheduler:
