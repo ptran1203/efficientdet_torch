@@ -36,6 +36,8 @@ class DatasetRetriever(Dataset):
         else:
             image, boxes, labels = self.load_mosaic(index)
 
+        if not len(boxes):
+            image, boxes, labels = self.load_image_and_boxes(index)
         target = {}
         target['boxes'] = boxes
         target['labels'] = torch.tensor(labels)
@@ -48,7 +50,7 @@ class DatasetRetriever(Dataset):
                     'bboxes': target['boxes'],
                     'labels': labels
                 })
-                # if len(sample['bboxes']) > 0:
+                if len(sample['bboxes']) > 0:
                     image = sample['image']
                     target['boxes'] = torch.stack(tuple(map(torch.tensor, zip(*sample['bboxes'])))).permute(1, 0)
                     target['boxes'][:,[0,1,2,3]] = target['boxes'][:,[1,0,3,2]]  #yxyx: be warning
