@@ -66,7 +66,7 @@ class Fitter:
                 self.log(f'Val loss improved from {self.best_summary_loss} to {summary_loss.avg}, save checkpoint to {save_path}')
 
             # if self.config.validation_scheduler:
-            #     self.scheduler.step()
+            #     self.scheduler.step(metrics=1)
 
             self.epoch += 1
 
