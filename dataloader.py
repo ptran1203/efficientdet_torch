@@ -74,6 +74,7 @@ class DatasetRetriever(Dataset):
 
     def load_mosaic(self, index):
         """ 
+        load_mosaic from https://github.com/ultralytics/yolov5/blob/master/utils/datasets.py
         This implementation of cutmix author:  https://www.kaggle.com/nvnnghia 
         Refactoring and adaptation: https://www.kaggle.com/shonenkov
         """
