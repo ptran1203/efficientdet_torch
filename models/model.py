@@ -138,9 +138,10 @@ class Fitter:
     def log_each_epoch(self, t, loss, is_training=True):
         stage = 'train' if is_training else 'val'
 
-        self.log(f"\nEpoch - [{self.epoch}/{self.config.n_epochs}] - {(time.time() - t):.5f}")
         if is_training:
+            self.log(f"\nEpoch - [{self.epoch}/{self.config.n_epochs}] - {(time.time() - t):.5f}")
             self.log(f"Learning rate : {self.lr_list[-1]:.4e} ")
+
         self.log(f":{stage} loss - {loss.avg:.5f}")
 
     def log(self, message):
