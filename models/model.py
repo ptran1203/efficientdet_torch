@@ -166,12 +166,15 @@ def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False)
         norm_kwargs=dict(eps=.001, momentum=.01))
 
     if checkpoint_path and os.path.isfile(checkpoint_path):
-        import gc
-        checkpoint = torch.load(checkpoint_path)
-        net.load_state_dict(checkpoint['model_state_dict'])
-        print(f'Weight loaded from {checkpoint_path}')
-        del checkpoint
-        gc.collect()
+        try:
+            import gc
+            checkpoint = torch.load(checkpoint_path)
+            net.load_state_dict(checkpoint['model_state_dict'])
+            print(f'Weight loaded from {checkpoint_path}')
+            del checkpoint
+            gc.collect()
+        except:
+            print(f'Could not load weight from {checkpoint_path}')
 
     if is_inference:
         net = DetBenchEval(net, config)
