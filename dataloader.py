@@ -86,7 +86,7 @@ class DatasetRetriever(Dataset):
         result_labels = []
 
         for i, index in enumerate(indexes):
-            img, box, label = self.load_image_and_boxes(index)
+            image, boxes, labels = self.load_image_and_boxes(index)
             h, w, _ = image.shape
             if i == 0:
                 result_image = np.full((s * 2, s * 2, 3), 1, dtype=np.float32)
@@ -102,7 +102,7 @@ class DatasetRetriever(Dataset):
                 x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
                 x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
 
-            result_image[y1a:y2a, x1a:x2a] = img[y1b:y2b, x1b:x2b]
+            result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]
             padw = x1a - x1b
             padh = y1a - y1b
 
@@ -111,8 +111,8 @@ class DatasetRetriever(Dataset):
             box[:, 2] += padw
             box[:, 3] += padh
 
-            result_boxes.append(box)
-            result_labels.append(label)
+            result_boxes.append(boxes)
+            result_labels.append(labels)
 
         result_boxes = np.concatenate(result_boxes, 0)
         result_labels = np.concatenate(result_labels, 0)
