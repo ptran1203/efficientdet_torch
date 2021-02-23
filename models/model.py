@@ -50,7 +50,7 @@ class Fitter:
             summary_loss = self.train_one_epoch(train_loader)
 
             self.log(f'[RESULT]: Train. Epoch: {self.epoch}, summary_loss: {summary_loss.avg:.5f}, time: {(time.time() - t):.5f}')
-            self.save(f'{self.base_dir}/last-checkpoint.bin')
+            # self.save(f'/content/{self.model_name}.bin')
 
             t = time.time()
             summary_loss = self.validation(validation_loader)
@@ -60,11 +60,13 @@ class Fitter:
                 self.best_summary_loss = summary_loss.avg
                 self.model.eval()
                 self.save(f'/content/{self.model_name}.bin')
-                
+
                 try:
                     os.remove(f)
-                except:pass
-                f = f'{self.base_dir}/best-checkpoint-{str(self.epoch).zfill(3)}epoch.bin'
+                except:
+                    pass
+
+                f = f'/content/{self.model_name}.bin'
 
             if self.config.validation_scheduler:
                 self.scheduler.step(metrics=summary_loss.avg)
