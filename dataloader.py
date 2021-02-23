@@ -31,7 +31,7 @@ class DatasetRetriever(Dataset):
     def __getitem__(self, index: int):
         image_id = self.image_ids[index]
         
-        if self.test or random.random() > 5:
+        if self.test or random.random() >= 0.5:
             image, boxes, labels = self.load_image_and_boxes(index)
         else:
             image, boxes, labels = self.load_mosaic(index)
@@ -42,7 +42,7 @@ class DatasetRetriever(Dataset):
         target['image_id'] = torch.tensor([index])
 
         if self.transforms:
-            for i in range(10):
+            for i in range(50):
                 sample = self.transforms(**{
                     'image': image,
                     'bboxes': target['boxes'],
@@ -53,7 +53,6 @@ class DatasetRetriever(Dataset):
                     target['boxes'] = torch.stack(tuple(map(torch.tensor, zip(*sample['bboxes'])))).permute(1, 0)
                     target['boxes'][:,[0,1,2,3]] = target['boxes'][:,[1,0,3,2]]  #yxyx: be warning
                     break
-
 
         return image, target, image_id
 
