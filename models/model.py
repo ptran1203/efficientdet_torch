@@ -60,7 +60,7 @@ class Fitter:
 
             if summary_loss.avg < self.best_summary_loss:
                 self.model.eval()
-                save_path = f'{self.base_dir}/{self.model_name}.bin'
+                save_path = f'{self.base_dir}/{self.model.name}.bin'
                 self.log(f'Val loss improved from {self.best_summary_loss} to {summary_loss.avg}, save checkpoint to {save_path}')
                 self.best_summary_loss = summary_loss.avg
                 self.save(save_path)
