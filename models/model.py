@@ -38,7 +38,6 @@ class Fitter:
         self.log(f'Fitter prepared. Device is {self.device}')
 
     def fit(self, train_loader, validation_loader):
-        f = ''
         for e in range(self.config.n_epochs):
             if self.config.verbose:
                 lr = self.optimizer.param_groups[0]['lr']
@@ -59,13 +58,6 @@ class Fitter:
                 self.best_summary_loss = summary_loss.avg
                 self.model.eval()
                 self.save(f'{self.base_dir}/{self.model_name}.bin')
-
-                try:
-                    os.remove(f)
-                except:
-                    pass
-
-                f = f'{self.base_dir}/{self.model_name}.bin'
                 self.log(f'Val loss improved from {self.best_summary_loss} to {summary_loss.avg}, save checkpoint to {f}')
 
             if self.config.validation_scheduler:
