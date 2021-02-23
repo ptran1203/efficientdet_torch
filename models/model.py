@@ -139,10 +139,10 @@ class Fitter:
         stage = 'train' if is_training else 'val'
 
         if is_training:
-            self.log(f"\nEpoch - [{self.epoch}/{self.config.n_epochs}] - {(time.time() - t):.5f}")
+            self.log(f"\nEpoch - [{self.epoch}/{self.config.n_epochs}] - {(time.time() - t):.5f} secs")
             self.log(f"Learning rate : {self.lr_list[-1]:.4e} ")
 
-        self.log(f":{stage} loss - {loss.avg:.5f}")
+        self.log(f"+ {stage} loss - {loss.avg:.5f}")
 
     def log(self, message):
         if self.config.verbose:
