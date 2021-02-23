@@ -169,6 +169,7 @@ def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False)
         import gc
         checkpoint = torch.load(checkpoint_path)
         net.load_state_dict(checkpoint['model_state_dict'])
+        print(f'Weight loaded from {checkpoint_path}')
         del checkpoint
         gc.collect()
 
