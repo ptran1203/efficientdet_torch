@@ -30,7 +30,6 @@ class DatasetRetriever(Dataset):
         # HARD CODE
         self.num_classes = 14
         self.classes = list(range(self.num_classes))
-        self.image_id_to_id = dict([(k, i) for i, k in enumerate(self.annotations)])
         self.class_index_array = self.create_class_index()
 
     def create_class_index(self):
