@@ -45,6 +45,11 @@ if __name__ == '__main__':
     fold = args.fold
     phi = args.phi
 
+    det_dir = './evaluation/input/detection-results'
+    gt_dir = './evaluation/input/ground-truth'
+    os.makedirs(det_dir, exist_ok=True)
+    os.makedirs(gt_dir, exist_ok=True)
+
     if not os.path.exists(checkpoint):
         raise ValueError(f'{checkpoint} does not exist')
 
@@ -81,17 +86,14 @@ if __name__ == '__main__':
         gt_boxes = gt_boxes[:, [1, 0, 3, 2]]
         gt_labels = target['labels'].numpy()
 
-        with open(
-            f"./evaluation/input/detection-results/val_{image_id}.txt", "w"
-        ) as f:
+
+        with open(f"{det_dir}/val_{image_id}.txt", "w") as f:
             for box, cls, score in zip(boxes, classes, scores):
                 x1, y1, x2, y2 = [int(v) for v in box]
                 pred_text = f"{int(cls)} {round(score, 2)} {round(x1)} {round(y1)} {round(x2)} {round(y2)}\n"
                 f.write(pred_text)
 
-        with open(
-            f"./evaluation/input/ground-truth/val_{image_id}.txt", "w"
-        ) as f:
+        with open(f"{gt_dir}/val_{image_id}.txt", "w") as f:
             for box, cls in zip(gt_boxes, gt_classes):
                 x1, y1, x2, y2 = box
                 pred_text = f"{int(cls)} {round(x1)} {round(y1)} {round(x2)} {round(y2)}\n"
