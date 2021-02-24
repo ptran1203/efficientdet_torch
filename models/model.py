@@ -15,7 +15,7 @@ from utils import AverageMeter
 
 class Fitter:
 
-    def __init__(self, model, device, config, base_dir='/content', model_name='effdet'):
+    def __init__(self, model, device, config, base_dir='/content'):
         self.config = config
         self.epoch = 0
 
@@ -25,7 +25,6 @@ class Fitter:
         
         self.log_path = f'{self.base_dir}/log.txt'
         self.best_summary_loss = 10**5
-        self.model_name = model_name
 
         self.model = model
         self.device = device
@@ -37,7 +36,7 @@ class Fitter:
             {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
         ] 
 
-        self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=config.lr)
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=config.lr, momentum=0.9)
         self.scheduler = config.SchedulerClass(self.optimizer, **config.scheduler_params)
         self.lr_list = []
         self.log(f'Fitter prepared. Device is {self.device}')
@@ -63,7 +62,7 @@ class Fitter:
 
             if summary_loss.avg < self.best_summary_loss:
                 self.model.eval()
-                save_path = f'{self.base_dir}/{self.model_name}.bin'
+                save_path = f'{self.base_dir}/{self.config.model_name}.bin'
                 self.log(f'Val loss improved from {self.best_summary_loss} to {summary_loss.avg}, save checkpoint to {save_path}')
                 self.best_summary_loss = summary_loss.avg
                 self.save(save_path)
@@ -170,12 +169,15 @@ def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False)
         norm_kwargs=dict(eps=.001, momentum=.01))
 
     if checkpoint_path and os.path.isfile(checkpoint_path):
-        import gc
-        checkpoint = torch.load(checkpoint_path)
-        net.load_state_dict(checkpoint['model_state_dict'])
-        print(f'Weight loaded from {checkpoint_path}')
-        del checkpoint
-        gc.collect()
+        try:
+            import gc
+            checkpoint = torch.load(checkpoint_path)
+            net.load_state_dict(checkpoint['model_state_dict'])
+            print(f'Weight loaded from {checkpoint_path}')
+            del checkpoint
+            gc.collect()
+        except:
+            print(f'Could not load weight from {checkpoint_path}')
 
     if is_inference:
         net = DetBenchEval(net, config)
