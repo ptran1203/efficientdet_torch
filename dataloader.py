@@ -127,4 +127,4 @@ class DatasetRetriever(Dataset):
         return result_image, result_boxes, result_labels
 
 def get_img_list_from_df(fold_df, folds):
-    return fold_df[fold_df['fold']isin(folds)]['image_id'].values
+    return fold_df[fold_df['fold'].isin(folds)]['image_id'].values
