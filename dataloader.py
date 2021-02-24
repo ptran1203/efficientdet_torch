@@ -38,6 +38,8 @@ class DatasetRetriever(Dataset):
             indices = self.marking[self.marking.class_id == c].index.values
             class_map[c] = indices
 
+        return class_map
+
     def __getitem__(self, index: int):
         image_id = self.image_ids[index]
         
