@@ -71,7 +71,7 @@ if __name__ == '__main__':
                   checkpoint_path=checkpoint,
                   is_inference=True)
 
-    for image, target, _ in val_dataset:
+    for image, target, _ in tqdm(val_dataset):
         boxes, scores, labels = make_predictions(
             model, image, score_thr=score_thr,
             iou_thr=iou_thr,
@@ -82,7 +82,7 @@ if __name__ == '__main__':
         gt_labels = target['labels'].numpy()
 
         with open(
-            f"./evaluation/input/detection-results/val_{i}.txt", "w"
+            f"./evaluation/input/detection-results/val_{image_id}.txt", "w"
         ) as f:
             for box, cls, score in zip(boxes, classes, scores):
                 x1, y1, x2, y2 = [int(v) for v in box]
@@ -90,7 +90,7 @@ if __name__ == '__main__':
                 f.write(pred_text)
 
         with open(
-            f"./evaluation/input/ground-truth/val_{i}.txt", "w"
+            f"./evaluation/input/ground-truth/val_{image_id}.txt", "w"
         ) as f:
             for box, cls in zip(gt_boxes, gt_classes):
                 x1, y1, x2, y2 = box
