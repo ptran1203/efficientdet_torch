@@ -4,7 +4,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 from tqdm import tqdm
 import albumentations as A
 import pandas as pd
-import parser
+import argparse
 
 def get_valid_transforms(gimage_size):
     return A.Compose(
