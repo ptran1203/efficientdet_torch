@@ -228,7 +228,7 @@ def merge_preds(predictions, image_size=512,
 
     boxes = np.array(boxes) * (image_size - 1)
     boxes = boxes.astype(np.int32).clip(min=0, max=image_size - 1)
-    return boxes, np.array(scores), np.array(labels).astype(np.int32)
+    return boxes[0], np.array(scores)[0], np.array(labels).astype(np.int32)[0]
 
 def make_predictions(model, images, score_thr=0.2, iou_thr=0.5):
     im_size = images.shape[1]
