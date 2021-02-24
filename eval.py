@@ -27,6 +27,7 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', type=str)
     parser.add_argument('--valid-csv', type=str) # validation csv file
     parser.add_argument('--fold', type=int, default=0)
+    parser.add_argument('--phi', type=int, default=0)
     parser.add_argument('--data-csv', type=str, default='train_df.csv')
     parser.add_argument('--score-threshold', type=float, default=0.01)
     parser.add_argument('--iou-threshold', type=float, default=0.5)
@@ -42,6 +43,7 @@ if __name__ == '__main__':
     image_dir = args.image_dir
     data_csv = args.data_csv
     fold = args.fold
+    phi = args.phi
 
     if not os.path.exists(checkpoint):
         raise ValueError(f'{checkpoint} does not exist')
