@@ -35,6 +35,7 @@ from effdet.object_detection import box_list
 from effdet.object_detection import faster_rcnn_box_coder
 from effdet.object_detection import region_similarity_calculator
 from effdet.object_detection import target_assigner
+from effdet.object_detection.box_list import BoxList
 
 # The minimum score to consider a logit for identifying detections.
 MIN_CLASS_SCORE = -5.0
@@ -353,3 +354,49 @@ class AnchorLabeler(nn.Module):
         num_positives = (matches.match_results != -1).float().sum()
 
         return cls_targets_dict, box_targets_dict, num_positives
+
+    def batch_label_anchors(self, gt_boxes, gt_classes, filter_valid=True):
+        batch_size = len(gt_boxes)
+        assert batch_size == len(gt_classes)
+        num_levels = self.anchors.max_level - self.anchors.min_level + 1
+        cls_targets_out = [[] for _ in range(num_levels)]
+        box_targets_out = [[] for _ in range(num_levels)]
+        num_positives_out = []
+
+        anchor_box_list = BoxList(self.anchors.boxes)
+        for i in range(batch_size):
+            last_sample = i == batch_size - 1
+
+            if filter_valid:
+                valid_idx = gt_classes[i] > -1  # filter gt targets w/ label <= -1
+                gt_box_list = BoxList(gt_boxes[i][valid_idx])
+                gt_class_i = gt_classes[i][valid_idx]
+            else:
+                gt_box_list = BoxList(gt_boxes[i])
+                gt_class_i = gt_classes[i]
+            cls_targets, box_targets, matches = self.target_assigner.assign(anchor_box_list, gt_box_list, gt_class_i)
+
+            # class labels start from 1 and the background class = -1
+            cls_targets = (cls_targets - 1).long()
+
+            # Unpack labels.
+            """Unpacks an array of cls/box into multiple scales."""
+            count = 0
+            for level in range(self.anchors.min_level, self.anchors.max_level + 1):
+                level_idx = level - self.anchors.min_level
+                feat_size = self.anchors.feat_sizes[level]
+                steps = feat_size[0] * feat_size[1] * self.anchors.get_anchors_per_location()
+                cls_targets_out[level_idx].append(
+                    cls_targets[count:count + steps].view([feat_size[0], feat_size[1], -1]))
+                box_targets_out[level_idx].append(
+                    box_targets[count:count + steps].view([feat_size[0], feat_size[1], -1]))
+                count += steps
+                if last_sample:
+                    cls_targets_out[level_idx] = torch.stack(cls_targets_out[level_idx])
+                    box_targets_out[level_idx] = torch.stack(box_targets_out[level_idx])
+
+            num_positives_out.append((matches.match_results > -1).float().sum())
+            if last_sample:
+                num_positives_out = torch.stack(num_positives_out)
+
+        return cls_targets_out, box_targets_out, num_positives_out

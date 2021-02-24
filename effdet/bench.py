@@ -89,10 +89,12 @@ class DetBenchTrain(nn.Module):
         box_targets = []
         num_positives = []
         # FIXME this may be a bottleneck, would be faster if batched, or should be done in loader/dataset?
-        for i in range(x.shape[0]):
-            gt_class_out, gt_box_out, num_positive = self.anchor_labeler.label_anchors(gt_boxes[i], gt_labels[i])
-            cls_targets.append(gt_class_out)
-            box_targets.append(gt_box_out)
-            num_positives.append(num_positive)
+        cls_targets, box_targets, num_positives = self.anchor_labeler.batch_label_anchors(
+                gt_boxes, gt_labels)
+        # for i in range(x.shape[0]):
+        #     gt_class_out, gt_box_out, num_positive = self.anchor_labeler.label_anchors(gt_boxes[i], gt_labels[i])
+        #     cls_targets.append(gt_class_out)
+        #     box_targets.append(gt_box_out)
+        #     num_positives.append(num_positive)
 
         return self.loss_fn(class_out, box_out, cls_targets, box_targets, num_positives)
