@@ -2,13 +2,16 @@
 import torch
 import time
 import os
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from datetime import datetime
 from torch.utils.data.sampler import SequentialSampler, RandomSampler
 from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain, DetBenchEval
 from effdet.efficientdet import HeadNet
 from tqdm import tqdm, tqdm_notebook
 from utils import AverageMeter
-import matplotlib.pyplot as plt
+
 
 class Fitter:
 
@@ -210,3 +213,40 @@ def run_training(model, TrainGlobalConfig, train_dataset, val_dataset):
 
     fitter = Fitter(model=model, device=device, config=TrainGlobalConfig)
     fitter.fit(train_loader, val_loader)
+
+def merge_preds(predictions, image_size=512,
+                iou_thr=0.5, weights=None):
+
+    boxes = [(prediction['boxes'] / (image_size - 1)).tolist()  for prediction in predictions]
+    scores = [prediction['scores'].tolist()  for prediction in predictions]
+    labels = [prediction['labels'].tolist() for prediction in predictions]
+
+    # boxes, scores, labels = weighted_boxes_fusion(boxes, scores, labels, weights=None, iou_thr=iou_thr)
+    # TODO: apply nms
+
+    boxes = np.array(boxes) * (image_size - 1)
+    boxes = boxes.astype(np.int32).clip(min=0, max=image_size - 1)
+    return boxes, np.array(scores), np.array(labels).astype(np.int32)
+
+def make_predictions(model, images, score_thr=0.2, iou_thr=0.5):
+    im_size = images.shape[1]
+    images = torch.stack((images,)).cuda().float()
+    predictions = []
+    with torch.no_grad():
+        det = model(images, torch.tensor([1]*images.shape[0]).float().cuda())
+        for i in range(images.shape[0]):
+            np_det = det[i].detach().cpu().numpy()
+            boxes = np_det[:, :4]
+            scores = np_det[:, 4]
+            labels = np_det[:, -1]
+            indexes = np.where(scores > score_thr)[0]
+            boxes = boxes[indexes]
+            boxes[:, 2] = boxes[:, 2] + boxes[:, 0]
+            boxes[:, 3] = boxes[:, 3] + boxes[:, 1]
+            predictions.append({
+                'boxes': boxes[indexes],
+                'scores': scores[indexes],
+                'labels': labels[indexes]
+            })
+
+    return merge_preds(predictions, image_size=im_size)

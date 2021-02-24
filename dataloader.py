@@ -14,8 +14,8 @@ class DatasetRetriever(Dataset):
         transforms=None,
         test=False,
         image_size=640,
-        root_path='/content',
-        fold_dict={}
+        mosaic=True,
+        image_dir='/content',
     ):
         super().__init__()
 
@@ -24,20 +24,21 @@ class DatasetRetriever(Dataset):
         self.transforms = transforms
         self.test = test
         self.image_size = image_size
-        self.root_path = root_path
-        self.fold_dict = fold_dict
+        self.image_dir = image_dir
         self.mosaic_border = [-image_size // 2, -image_size // 2]
+        self.mosaic = mosaic
 
     def __getitem__(self, index: int):
         image_id = self.image_ids[index]
         
-        if self.test or random.random() >= 0.5:
+        if self.test or not self.mosaic or random.random() >= 0.5:
             image, boxes, labels = self.load_image_and_boxes(index)
         else:
             image, boxes, labels = self.load_mosaic(index)
 
         if not len(boxes):
             image, boxes, labels = self.load_image_and_boxes(index)
+
         target = {}
         target['boxes'] = boxes
         target['labels'] = torch.tensor(labels)
@@ -63,8 +64,7 @@ class DatasetRetriever(Dataset):
 
     def load_image_and_boxes(self, index):
         image_id = self.image_ids[index]
-        fold_id = self.fold_dict[image_id]
-        image = cv2.imread(f'{self.root_path}/fold{fold_id}/{image_id}.jpg', cv2.IMREAD_COLOR).copy().astype(np.float32)
+        image = cv2.imread(f'{self.image_dir}/{image_id}.jpg', cv2.IMREAD_COLOR).copy().astype(np.float32)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
         image /= 255.0
         records = self.marking[self.marking['image_id'] == image_id]
@@ -125,3 +125,6 @@ class DatasetRetriever(Dataset):
         result_labels = result_labels[valid_indices]
 
         return result_image, result_boxes, result_labels
+
+def get_img_list_from_df(fold_df, folds):
+    return fold_df[fold_df['fold']isin(folds)]['image_id'].values
