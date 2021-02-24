@@ -38,7 +38,7 @@ class DatasetRetriever(Dataset):
 
         self.image_indices = range(len(self.image_ids))
         class_map = {}
-        for c in tqdm_notebook(self.classes):
+        for c in self.classes:
             records = self.marking[self.marking.class_id == c]
             class_map[c] = []
             for _, row in records.iterrows():
