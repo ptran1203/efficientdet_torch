@@ -27,6 +27,7 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', type=str)
     parser.add_argument('--valid-csv', type=str) # validation csv file
     parser.add_argument('--fold', type=int, default=0)
+    parser.add_argument('--data-csv', type=str, default='train_df.csv')
     parser.add_argument('--score-threshold', type=float, default=0.01)
     parser.add_argument('--iou-threshold', type=float, default=0.5)
     parser.add_argument('--image-size', type=int, default=640)
@@ -39,6 +40,7 @@ if __name__ == '__main__':
     iou_thr = args.iou_threshold
     gimage_size = args.image_size
     image_dir = args.image_dir
+    data_csv = args.data_csv
     fold = args.fold
 
     if not os.path.exists(checkpoint):
@@ -48,6 +50,8 @@ if __name__ == '__main__':
         raise ValueError(f'{valid_csv} does not exist')
 
     val_df = pd.read_csv(valid_csv)
+    dataframe = pd.read_csv(data_csv)
+    dataframe = dataframe[dataframe['class_id'] != 14].reset_index(drop= True)
 
     valid_imgs = get_img_list_from_df(val_df, [fold])
 
