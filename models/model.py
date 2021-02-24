@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from torch.utils.data.sampler import SequentialSampler, RandomSampler
-from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain, DetBenchEval
+from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain, DetBenchPredict
 from effdet.efficientdet import HeadNet
 from tqdm import tqdm, tqdm_notebook
 from utils import AverageMeter
@@ -183,7 +183,7 @@ def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False,
             print(f'Could not load weight from {checkpoint_path}')
 
     if is_inference:
-        net = DetBenchEval(net, config)
+        net = DetBenchPredict(net)
         net.eval()
         return net.cuda()
 
