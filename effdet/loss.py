@@ -180,7 +180,7 @@ def loss_fn(
     """
     # Sum all positives in a batch for normalization and avoid zero
     # num_positives_sum, which would lead to inf loss during training
-    num_positives_sum = (num_positives.sum() + 1.0).float()
+    num_positives_sum = (sum(num_positives) + 1.0).float()
     levels = len(cls_outputs)
 
     cls_losses = []
