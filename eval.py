@@ -62,7 +62,6 @@ if __name__ == '__main__':
         test=True,
         image_size=gimage_size,
         image_dir=image_dir,
-        fold_dict=fold_dict,
     )
 
     model = get_model(phi=phi, num_classes=14,
