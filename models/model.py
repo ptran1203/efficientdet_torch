@@ -219,7 +219,7 @@ def run_training(model, TrainGlobalConfig, train_dataset, val_dataset):
     fitter.fit(train_loader, val_loader)
 
 def merge_preds(predictions, image_size=512,
-                iou_thr=0.5, weights=None, merge_box='wbf'):
+                iou_thr=0.5, weights=None, merge_box='nms'):
 
     boxes = [(prediction['boxes'] / (image_size - 1)).tolist()  for prediction in predictions]
     scores = [prediction['scores'].tolist()  for prediction in predictions]
@@ -232,9 +232,9 @@ def merge_preds(predictions, image_size=512,
 
     boxes = np.array(boxes) * (image_size - 1)
     boxes = boxes.astype(np.int32).clip(min=0, max=image_size - 1)
-    return boxes[0], np.array(scores)[0], np.array(labels).astype(np.int32)[0]
+    return boxes, np.array(scores), np.array(labels).astype(np.int32)
 
-def make_predictions(model, images, score_thr=0.2, iou_thr=0.5):
+def make_predictions(model, images, score_thr=0.2, iou_thr=0.5, merge_box='nms'):
     im_size = images.shape[1]
     images = torch.stack((images,)).cuda().float()
     predictions = []
@@ -256,3 +256,4 @@ def make_predictions(model, images, score_thr=0.2, iou_thr=0.5):
             })
 
     return merge_preds(predictions, image_size=im_size)
+
