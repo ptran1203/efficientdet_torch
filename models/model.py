@@ -181,11 +181,11 @@ def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False,
             print(f'Could not load weight from {checkpoint_path}')
 
     if is_inference:
-        model = DetBenchPredict(net)
+        model = DetBenchPredict(model)
         model.eval()
         return model.cuda()
 
-    return DetBenchTrain(net)
+    return DetBenchTrain(model)
 
 
 def collate_fn(batch):
