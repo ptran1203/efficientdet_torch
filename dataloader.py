@@ -33,10 +33,18 @@ class DatasetRetriever(Dataset):
         self.class_index_array = self.create_class_index()
 
     def create_class_index(self):
+        if self.test:
+            return
+
+        self.image_indices = range(len(self.image_ids))
         class_map = {}
-        for c in self.classes:
-            indices = self.marking[self.marking.class_id == c].index.values
-            class_map[c] = indices
+        for c in tqdm_notebook(self.classes):
+            records = self.marking[self.marking.class_id == c]
+            class_map[c] = []
+            for _, row in records.iterrows():
+                idx = np.where(self.image_ids == row.image_id)
+                if len(idx[0]):
+                    class_map[c].append(idx[0][0])
 
         return class_map
 
@@ -76,11 +84,11 @@ class DatasetRetriever(Dataset):
 
     def load_image_and_boxes(self, index):
         # Random select class first then select image for that class
+        if not self.test:
+            rand_class = random.choice(self.classes)
+            index = random.choice(self.class_index_array[rand_class])
 
-        rand_class = random.choice(self.classes)
-        random_index = random.choice(self.class_index_array)
-        image_id = self.image_ids[random_index]
-
+        image_id = self.image_ids[index]
         image = cv2.imread(f'{self.image_dir}/{image_id}.jpg', cv2.IMREAD_COLOR).copy().astype(np.float32)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
         image /= 255.0

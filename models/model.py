@@ -11,6 +11,8 @@ from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain, DetBenc
 from effdet.efficientdet import HeadNet
 from tqdm import tqdm, tqdm_notebook
 from utils import AverageMeter
+from ensemble_boxes import weighted_boxes_fusion, nms
+
 
 
 class Fitter:
@@ -217,14 +219,16 @@ def run_training(model, TrainGlobalConfig, train_dataset, val_dataset):
     fitter.fit(train_loader, val_loader)
 
 def merge_preds(predictions, image_size=512,
-                iou_thr=0.5, weights=None):
+                iou_thr=0.5, weights=None, merge_box='wbf'):
 
     boxes = [(prediction['boxes'] / (image_size - 1)).tolist()  for prediction in predictions]
     scores = [prediction['scores'].tolist()  for prediction in predictions]
     labels = [prediction['labels'].tolist() for prediction in predictions]
+    if merge_box == 'wbf':
+        boxes, scores, labels = weighted_boxes_fusion(boxes, scores, labels, weights=None, iou_thr=iou_thr)
 
-    # boxes, scores, labels = weighted_boxes_fusion(boxes, scores, labels, weights=None, iou_thr=iou_thr)
-    # TODO: apply nms
+    else:
+        boxes, scores, labels = nms(boxes, scores, labels, weights=None, iou_thr=iou_thr)
 
     boxes = np.array(boxes) * (image_size - 1)
     boxes = boxes.astype(np.int32).clip(min=0, max=image_size - 1)
