@@ -88,13 +88,13 @@ if __name__ == '__main__':
 
 
         with open(f"{det_dir}/val_{image_id}.txt", "w") as f:
-            for box, cls, score in zip(boxes, classes, scores):
+            for box, cls, score in zip(boxes, labels, scores):
                 x1, y1, x2, y2 = [int(v) for v in box]
                 pred_text = f"{int(cls)} {round(score, 2)} {round(x1)} {round(y1)} {round(x2)} {round(y2)}\n"
                 f.write(pred_text)
 
         with open(f"{gt_dir}/val_{image_id}.txt", "w") as f:
-            for box, cls in zip(gt_boxes, gt_classes):
+            for box, cls in zip(gt_boxes, gt_labels):
                 x1, y1, x2, y2 = box
                 pred_text = f"{int(cls)} {round(x1)} {round(y1)} {round(x2)} {round(y2)}\n"
                 f.write(pred_text)
