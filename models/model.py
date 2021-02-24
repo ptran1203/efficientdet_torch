@@ -187,7 +187,7 @@ def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False,
         net.eval()
         return net.cuda()
 
-    return DetBenchTrain(net, config)
+    return DetBenchTrain(net)
 
 
 def collate_fn(batch):
