@@ -241,12 +241,12 @@ def make_predictions(model, images, score_thr=0.2, iou_thr=0.5):
             boxes = np_det[:, :4]
             scores = np_det[:, 4]
             labels = np_det[:, -1]
-            indexes = np.where(scores > score_thr)[0]
+            indexes = np.where(scores >= score_thr)[0]
             boxes = boxes[indexes]
             boxes[:, 2] = boxes[:, 2] + boxes[:, 0]
             boxes[:, 3] = boxes[:, 3] + boxes[:, 1]
             predictions.append({
-                'boxes': boxes[indexes],
+                'boxes': boxes,
                 'scores': scores[indexes],
                 'labels': labels[indexes]
             })

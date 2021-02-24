@@ -27,6 +27,17 @@ class DatasetRetriever(Dataset):
         self.image_dir = image_dir
         self.mosaic_border = [-image_size // 2, -image_size // 2]
         self.mosaic = mosaic
+        # HARD CODE
+        self.num_classes = 14
+        self.classes = list(range(self.num_classes))
+        self.image_id_to_id = dict([(k, i) for i, k in enumerate(self.annotations)])
+        self.class_index_array = self.create_class_index()
+
+    def create_class_index(self):
+        class_map = {}
+        for c in self.classes:
+            indices = self.marking[self.marking.class_id == c].index.values
+            class_map[c] = indices
 
     def __getitem__(self, index: int):
         image_id = self.image_ids[index]
@@ -63,13 +74,19 @@ class DatasetRetriever(Dataset):
         return len(self.image_ids)
 
     def load_image_and_boxes(self, index):
-        image_id = self.image_ids[index]
+        # Random select class first then select image for that class
+
+        rand_class = random.choice(self.classes)
+        random_index = random.choice(self.class_index_array)
+        image_id = self.image_ids[random_index]
+
         image = cv2.imread(f'{self.image_dir}/{image_id}.jpg', cv2.IMREAD_COLOR).copy().astype(np.float32)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
         image /= 255.0
         records = self.marking[self.marking['image_id'] == image_id]
         boxes = records[['x_min', 'y_min', 'x_max', 'y_max']].values
         labels = records['class_id'].values
+
         return image, boxes, labels
 
     def load_mosaic(self, index):
