@@ -164,7 +164,7 @@ class Fitter:
 def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False, label_smoothing=0):
     config = get_efficientdet_config(f'tf_efficientdet_d{phi}')
     model = EfficientDet(config, pretrained_backbone=True)
-    setattr(config, 'image_size', image_size)
+    setattr(config, 'image_size', (image_size, image_size))
     setattr(config, 'label_smoothing', label_smoothing)
 
     model.reset_head(num_classes=num_classes)
