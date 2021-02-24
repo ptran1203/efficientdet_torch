@@ -71,7 +71,7 @@ if __name__ == '__main__':
                   checkpoint_path=checkpoint,
                   is_inference=True)
 
-    for image, target, _ in tqdm(val_dataset):
+    for image, target, image_id in tqdm(val_dataset):
         boxes, scores, labels = make_predictions(
             model, image, score_thr=score_thr,
             iou_thr=iou_thr,
