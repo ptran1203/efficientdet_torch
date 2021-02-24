@@ -17,7 +17,7 @@ from functools import partial
 
 from timm import create_model
 from timm.models.layers import create_conv2d, create_pool2d, Swish, get_act_layer
-from effdet.config import get_fpn_config, set_config_writeable, set_config_readonly
+from .config import get_fpn_config, set_config_writeable, set_config_readonly
 
 _DEBUG = False
 
