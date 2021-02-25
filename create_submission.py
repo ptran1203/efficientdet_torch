@@ -49,7 +49,7 @@ if __name__ == '__main__':
     for fname in tqdm(os.listdir(image_dir)):
         path = os.path.join(image_dir, fname)
         image = cv2.imread(path, cv2.IMREAD_COLOR).astype(np.float32)
-        image = cv2.Resize(image, (gimage_size, gimage_size))
+        image = cv2.resize(image, (gimage_size, gimage_size))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
         image /= 255.0
         image_id = fname.split(".")[0]
