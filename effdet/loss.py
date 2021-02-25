@@ -8,6 +8,34 @@ def focal_loss(logits, targets, alpha, gamma, normalizer):
 
     Focal loss = -(1-pt)^gamma * log(pt)
     where pt is the probability of being classified to the true class.
+    For brevity, let x = logits,  z = targets, r = gamma, and p_t = sigmod(x)
+    for positive samples and 1 - sigmoid(x) for negative examples.
+    
+    The modulator, defined as (1 - P_t)^r, is a critical part in focal loss
+    computation. For r > 0, it puts more weights on hard examples, and less
+    weights on easier ones. However if it is directly computed as (1 - P_t)^r,
+    its back-propagation is not stable when r < 1. The implementation here
+    resolves the issue.
+    
+    For positive samples (labels being 1),
+       (1 - p_t)^r
+     = (1 - sigmoid(x))^r
+     = (1 - (1 / (1 + exp(-x))))^r
+     = (exp(-x) / (1 + exp(-x)))^r
+     = exp(log((exp(-x) / (1 + exp(-x)))^r))
+     = exp(r * log(exp(-x)) - r * log(1 + exp(-x)))
+     = exp(- r * x - r * log(1 + exp(-x)))
+    
+    For negative samples (labels being 0),
+       (1 - p_t)^r
+     = (sigmoid(x))^r
+     = (1 / (1 + exp(-x)))^r
+     = exp(log((1 / (1 + exp(-x)))^r))
+     = exp(-r * log(1 + exp(-x)))
+    
+    Therefore one unified form for positive (z = 1) and negative (z = 0)
+    samples is:
+         (1 - p_t)^r = exp(-r * z * x - r * log(1 + exp(-x))).
 
     Args:
         logits: A float32 tensor of size [batch, height_in, width_in, num_predictions].
@@ -27,35 +55,6 @@ def focal_loss(logits, targets, alpha, gamma, normalizer):
 
     positive_label_mask = targets == 1.0
     cross_entropy = F.binary_cross_entropy_with_logits(logits, targets.to(logits.dtype), reduction='none')
-    # Below are comments/derivations for computing modulator.
-    # For brevity, let x = logits,  z = targets, r = gamma, and p_t = sigmod(x)
-    # for positive samples and 1 - sigmoid(x) for negative examples.
-    #
-    # The modulator, defined as (1 - P_t)^r, is a critical part in focal loss
-    # computation. For r > 0, it puts more weights on hard examples, and less
-    # weights on easier ones. However if it is directly computed as (1 - P_t)^r,
-    # its back-propagation is not stable when r < 1. The implementation here
-    # resolves the issue.
-    #
-    # For positive samples (labels being 1),
-    #    (1 - p_t)^r
-    #  = (1 - sigmoid(x))^r
-    #  = (1 - (1 / (1 + exp(-x))))^r
-    #  = (exp(-x) / (1 + exp(-x)))^r
-    #  = exp(log((exp(-x) / (1 + exp(-x)))^r))
-    #  = exp(r * log(exp(-x)) - r * log(1 + exp(-x)))
-    #  = exp(- r * x - r * log(1 + exp(-x)))
-    #
-    # For negative samples (labels being 0),
-    #    (1 - p_t)^r
-    #  = (sigmoid(x))^r
-    #  = (1 / (1 + exp(-x)))^r
-    #  = exp(log((1 / (1 + exp(-x)))^r))
-    #  = exp(-r * log(1 + exp(-x)))
-    #
-    # Therefore one unified form for positive (z = 1) and negative (z = 0)
-    # samples is:
-    #      (1 - p_t)^r = exp(-r * z * x - r * log(1 + exp(-x))).
     neg_logits = -1.0 * logits
     modulator = torch.exp(gamma * targets * neg_logits - gamma * torch.log1p(torch.exp(neg_logits)))
     loss = modulator * cross_entropy
@@ -63,6 +62,40 @@ def focal_loss(logits, targets, alpha, gamma, normalizer):
     weighted_loss /= normalizer
     return weighted_loss
 
+def new_focal_loss(logits, targets, alpha, gamma, normalizer, label_smoothing=0.01):
+    """Compute the focal loss between `logits` and the golden `target` values.
+    'New' is not the best descriptor, but this focal loss impl matches recent versions of
+    the official Tensorflow impl of EfficientDet. It has support for label smoothing, however
+    it is a bit slower, doesn't jit optimize well, and uses more memory.
+    Focal loss = -(1-pt)^gamma * log(pt)
+    where pt is the probability of being classified to the true class.
+    Args:
+        logits: A float32 tensor of size [batch, height_in, width_in, num_predictions].
+        targets: A float32 tensor of size [batch, height_in, width_in, num_predictions].
+        alpha: A float32 scalar multiplying alpha to the loss from positive examples
+            and (1-alpha) to the loss from negative examples.
+        gamma: A float32 scalar modulating loss from hard and easy examples.
+        normalizer: Divide loss by this value.
+        label_smoothing: Float in [0, 1]. If > `0` then smooth the labels.
+    Returns:
+        loss: A float32 scalar representing normalized total loss.
+    """
+    # compute focal loss multipliers before label smoothing, such that it will not blow up the loss.
+    pred_prob = logits.sigmoid()
+    targets = targets.to(logits.dtype)
+    onem_targets = 1. - targets
+    p_t = (targets * pred_prob) + (onem_targets * (1. - pred_prob))
+    alpha_factor = targets * alpha + onem_targets * (1. - alpha)
+    modulating_factor = (1. - p_t) ** gamma
+
+    # apply label smoothing for cross_entropy for each entry.
+    if label_smoothing > 0.:
+        targets = targets * (1. - label_smoothing) + .5 * label_smoothing
+
+    cross_entropy = F.binary_cross_entropy_with_logits(logits, targets, reduction='none')
+
+    # compute the final loss and return
+    return (1 / normalizer) * alpha_factor * modulating_factor * cross_entropy
 
 def huber_loss(input, target, delta=1., weights=None, size_average=True):
     """
@@ -96,13 +129,6 @@ def smooth_l1_loss(input, target, beta=1. / 9, weights=None, size_average=True):
     return loss.mean() if size_average else loss.sum()
 
 
-def _classification_loss(cls_outputs, cls_targets, num_positives, alpha=0.25, gamma=2.0):
-    """Computes classification loss."""
-    normalizer = num_positives
-    classification_loss = focal_loss(cls_outputs, cls_targets, alpha, gamma, normalizer)
-    return classification_loss
-
-
 def _box_loss(box_outputs, box_targets, num_positives, delta=0.1):
     """Computes box regression loss."""
     # delta is typically around the mean value of regression target.
@@ -124,6 +150,9 @@ class DetectionLoss(nn.Module):
         self.gamma = config.gamma
         self.delta = config.delta
         self.box_loss_weight = config.box_loss_weight
+        self.label_smoothing = config.label_smoothing
+
+        self._classification_loss = new_focal_loss if self.label_smoothing else focal_loss
 
     def forward(self, cls_outputs, box_outputs, cls_targets, box_targets, num_positives):
         """Computes total detection loss.
@@ -180,11 +209,12 @@ class DetectionLoss(nn.Module):
 
             bs, height, width, _, _ = cls_targets_at_level_oh.shape
             cls_targets_at_level_oh = cls_targets_at_level_oh.view(bs, height, width, -1)
-            cls_loss = _classification_loss(
+            cls_loss = self._classification_loss(
                 cls_outputs[l].permute(0, 2, 3, 1),
                 cls_targets_at_level_oh,
-                num_positives_sum,
-                alpha=self.alpha, gamma=self.gamma)
+                normalizer=num_positives_sum,
+                alpha=self.alpha, gamma=self.gamma,
+                label_smoothing=self.label_smoothing)
             cls_loss = cls_loss.view(bs, height, width, -1, self.num_classes)
             cls_loss *= (cls_targets_at_level != -2).unsqueeze(-1).float()
             cls_losses.append(cls_loss.sum())
