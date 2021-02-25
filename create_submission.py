@@ -1,5 +1,5 @@
 from models.model import get_model, make_predictions
-from tqdm import 
+from tqdm import tqdm
 import torch
 import pandas as pd
 import argparse
