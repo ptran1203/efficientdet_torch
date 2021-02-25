@@ -45,6 +45,7 @@ if __name__ == '__main__':
         "image_id": [],
         "PredictionString": [],
     }
+    test_df = pd.read_csv('test.csv')
 
     for fname in tqdm(os.listdir(image_dir)):
         path = os.path.join(image_dir, fname)
@@ -61,11 +62,17 @@ if __name__ == '__main__':
         )
 
         submission["image_id"].append(image_id)
+        w, h = test_df.loc[test_df.image_id==image_id,['width', 'height']].values[0]
 
         if len(boxes):
             pred = []
             for box, cls, score in zip(boxes, labels, scores):
-                x1, y1, x2, y2 = [int(v) for v in box * box_scale]
+                x1, y1, x2, y2 = [int(v) for v in box / gimage_size]
+                x1 *= w
+                x2 *= w
+                y1 *= h
+                y2 *= h
+
                 prediction_text = f"{int(cls) - 1} {score} {round(x1)} {round(y1)} {round(x2)} {round(y2)}"
                 pred.append(prediction_text)
             submission["PredictionString"].append(" ".join(pred))
