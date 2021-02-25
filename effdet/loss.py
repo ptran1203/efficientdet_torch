@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-def focal_loss(logits, targets, alpha, gamma, normalizer):
+def focal_loss(logits, targets, alpha, gamma, normalizer, label_smoothing=0):
     """Compute the focal loss between `logits` and the golden `target` values.
 
     Focal loss = -(1-pt)^gamma * log(pt)
