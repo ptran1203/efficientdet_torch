@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from torch.utils.data.sampler import SequentialSampler, RandomSampler
-from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain, DetBenchPredict
+from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain, DetBenchEval
 from effdet.efficientdet import HeadNet
 from tqdm import tqdm, tqdm_notebook
 from utils import AverageMeter
@@ -161,19 +161,20 @@ class Fitter:
         plt.show()
 
 
-def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False, label_smoothing=0):
+def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False):
     config = get_efficientdet_config(f'tf_efficientdet_d{phi}')
-    model = EfficientDet(config, pretrained_backbone=True)
-    setattr(config, 'image_size', (image_size, image_size))
-    setattr(config, 'label_smoothing', label_smoothing)
-
-    model.reset_head(num_classes=num_classes)
+    net = EfficientDet(config, pretrained_backbone=True)
+    config.num_classes = num_classes
+    config.image_size = image_size
+    net.class_net = HeadNet(config,
+        num_outputs=config.num_classes,
+        norm_kwargs=dict(eps=.001, momentum=.01))
 
     if checkpoint_path and os.path.isfile(checkpoint_path):
         try:
             import gc
             checkpoint = torch.load(checkpoint_path)
-            model.load_state_dict(checkpoint['model_state_dict'])
+            net.load_state_dict(checkpoint['model_state_dict'])
             print(f'Weight loaded from {checkpoint_path}')
             del checkpoint
             gc.collect()
@@ -181,11 +182,11 @@ def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False,
             print(f'Could not load weight from {checkpoint_path}')
 
     if is_inference:
-        model = DetBenchPredict(model)
-        model.eval()
-        return model.cuda()
+        net = DetBenchEval(net, config)
+        net.eval()
+        return net.cuda()
 
-    return DetBenchTrain(model)
+    return DetBenchTrain(net, config)
 
 
 def collate_fn(batch):
