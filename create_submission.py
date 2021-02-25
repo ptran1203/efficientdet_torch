@@ -73,4 +73,5 @@ if __name__ == '__main__':
             submission["PredictionString"].append('14 1.0 0 0 1 1')
 
     filename = f'submission_effdetD{phi}_fold{args.fold}.csv'
+    submission = pd.DataFrame(submission)
     submission.to_csv(os.path.join(output_dir, filename), index=False)
