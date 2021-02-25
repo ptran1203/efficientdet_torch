@@ -222,7 +222,8 @@ def run_training(model, TrainGlobalConfig, train_dataset, val_dataset):
 def merge_preds(predictions, image_size=512,
                 iou_thr=0.5, weights=None, merge_box='nms'):
 
-    boxes = [(prediction['boxes'] / image_size).tolist()  for prediction in predictions]
+    image_size_minus1 = image_size - 1
+    boxes = [(prediction['boxes'] / image_size_minus1).tolist()  for prediction in predictions]
     scores = [prediction['scores'].tolist()  for prediction in predictions]
     labels = [prediction['labels'].tolist() for prediction in predictions]
     if merge_box == 'wbf':
@@ -231,8 +232,8 @@ def merge_preds(predictions, image_size=512,
     else:
         boxes, scores, labels = nms(boxes, scores, labels, weights=None, iou_thr=iou_thr)
 
-    boxes = np.array(boxes) * image_size
-    boxes = boxes.astype(np.int32).clip(min=0, max=image_size - 1)
+    boxes = np.array(boxes) * image_size_minus1
+    boxes = boxes.astype(np.int32).clip(min=0, max=image_size_minus1)
     return boxes, np.array(scores), np.array(labels).astype(np.int32)
 
 def make_predictions(model, images, score_thr=0.2, iou_thr=0.5, merge_box='nms'):
