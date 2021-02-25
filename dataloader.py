@@ -15,6 +15,7 @@ class DatasetRetriever(Dataset):
         test=False,
         image_size=640,
         mosaic=True,
+        random_intensity=0,
         image_dir='/content',
     ):
         super().__init__()
@@ -27,6 +28,7 @@ class DatasetRetriever(Dataset):
         self.image_dir = image_dir
         self.mosaic_border = [-image_size // 2, -image_size // 2]
         self.mosaic = mosaic
+        self.random_intensity = random_intensity
         # HARD CODE
         self.num_classes = 14
         self.classes = list(range(self.num_classes))
@@ -91,7 +93,14 @@ class DatasetRetriever(Dataset):
         image_id = self.image_ids[index]
         image = cv2.imread(f'{self.image_dir}/{image_id}.jpg', cv2.IMREAD_COLOR).copy().astype(np.float32)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
+
+        if self.random_intensity:
+            delta = np.random.randint(-self.random_intensity, self.random_intensity)
+            image += delta
+            np.clip(image, 0, 255, out=image)
+
         image /= 255.0
+
         records = self.marking[self.marking['image_id'] == image_id]
         boxes = records[['x_min', 'y_min', 'x_max', 'y_max']].values
         labels = records['class_id'].values + 1
