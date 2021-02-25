@@ -11,12 +11,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--checkpoint', type=str)
     parser.add_argument('--phi', type=int, default=0)
+    parser.add_argument('--fold', type=int, default=0)
     parser.add_argument('--data-csv', type=str, default='train_df.csv')
     parser.add_argument('--score-threshold', type=float, default=0.01)
     parser.add_argument('--iou-threshold', type=float, default=0.5)
     parser.add_argument('--image-size', type=int, default=640)
     parser.add_argument('--image-dir', type=str, default='/content')
     parser.add_argument('--box-scale', type=int, default=2)
+    parser.add_argument('--output-dir', type=str, default='/content')
 
     args = parser.parse_args()
     checkpoint = args.checkpoint
@@ -27,12 +29,11 @@ if __name__ == '__main__':
     data_csv = args.data_csv
     phi = args.phi
     box_scale = args.box_scale
+    output_dir = args.output_dir
 
     if not os.path.exists(checkpoint):
         raise ValueError(f'{checkpoint} does not exist')
 
-    if not os.path.exists(valid_csv):
-        raise ValueError(f'{valid_csv} does not exist')
 
     model = get_model(phi=phi, num_classes=14,
                   image_size=gimage_size,
@@ -43,7 +44,6 @@ if __name__ == '__main__':
         "image_id": [],
         "PredictionString": [],
     }
-
 
     for fname in tqdm(os.listdir(image_dir)):
         path = os.path.join(image_dir, fname)
@@ -69,8 +69,5 @@ if __name__ == '__main__':
         else:
             submission["PredictionString"].append('14 1.0 0 0 1 1')
 
-        with open(f"{det_dir}/val_{image_id}.txt", "w") as f:
-            for box, cls, score in zip(boxes, labels, scores):
-                x1, y1, x2, y2 = [int(v) for v in box]
-                pred_text = f"{int(cls)} {round(score, 2)} {round(x1)} {round(y1)} {round(x2)} {round(y2)}\n"
-                f.write(pred_text)
+    filename = f'submission_effdetD{phi}_fold{args.fold}.csv'
+    submission.to_csv(os.path.join(output_dir, filename) ,index=False)
