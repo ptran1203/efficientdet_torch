@@ -161,11 +161,12 @@ class Fitter:
         plt.show()
 
 
-def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False):
+def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False, label_smoothing=0.01):
     config = get_efficientdet_config(f'tf_efficientdet_d{phi}')
     net = EfficientDet(config, pretrained_backbone=True)
     config.num_classes = num_classes
     config.image_size = image_size
+    config.label_smoothing = label_smoothing
     net.class_net = HeadNet(config,
         num_outputs=config.num_classes,
         norm_kwargs=dict(eps=.001, momentum=.01))
