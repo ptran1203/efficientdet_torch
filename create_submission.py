@@ -52,7 +52,7 @@ if __name__ == '__main__':
         image = cv2.resize(image, (gimage_size, gimage_size))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
         image /= 255.0
-        image = torch.from_numpy(image)
+        image = torch.from_numpy(image.transpose(2, 0, 1))
         image_id = fname.split(".")[0]
 
         boxes, scores, labels = make_predictions(
