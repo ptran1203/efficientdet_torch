@@ -66,7 +66,7 @@ if __name__ == '__main__':
             pred = []
             for box, cls, score in zip(boxes, labels, scores):
                 x1, y1, x2, y2 = [int(v) for v in box * box_scale]
-                prediction_text = f"{int(cls)} {score} {round(x1)} {round(y1)} {round(x2)} {round(y2)}"
+                prediction_text = f"{int(cls) - 1} {score} {round(x1)} {round(y1)} {round(x2)} {round(y2)}"
                 pred.append(prediction_text)
             submission["PredictionString"].append(" ".join(pred))
         else:
