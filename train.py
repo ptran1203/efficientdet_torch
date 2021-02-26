@@ -19,7 +19,6 @@ def get_config(cfg_file, args):
         return ConfigFromDict(cfg)
 
 def get_train_transforms(config):
-    central_size = int(gimage_size * 1.0)
     augments = []
 
     if config.fliplr:
