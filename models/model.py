@@ -56,7 +56,7 @@ class Fitter:
             
             t = time.time()
             # summary_loss = self.train_one_epoch(train_loader)
-
+            summary_loss = 1
             self.log_each_epoch(t, summary_loss)
 
             t = time.time()
