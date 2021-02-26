@@ -1,4 +1,4 @@
-from models.model import get_model, make_predictions
+from models.model import get_model, make_predictions, run_training
 from dataloader import DatasetRetriever, get_img_list_from_df
 from albumentations.pytorch.transforms import ToTensorV2
 from tqdm import tqdm
