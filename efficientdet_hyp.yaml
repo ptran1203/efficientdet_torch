@@ -28,9 +28,7 @@ lr: 0.001
 warmup_epochs: 3
 
 # Augmentations
-shift_limit: 0.0625
-scale_limit: 0.1
-rot_limit: 45
+
 gamma_limit_min: 80
 gamma_limit_max: 120
 mixup: 0.0
@@ -40,3 +38,15 @@ fliplr: 0.5
 shear: 0.0
 translate: 0.1
 random_intensity: 0
+shift_scale_rot: 0.1
+shift_limit: 0.0625
+scale_limit: 0.1
+rot_limit: 5
+gaussian_blur: 0.1
+hue_sat: 0.1
+hue_limit: 0.2
+sat_limit: 0.2 
+val_huesat_limit: 0.2
+brightness_contrast: 0.1
+brightness_limit: 0.2
+contrast_limit: 0.2
