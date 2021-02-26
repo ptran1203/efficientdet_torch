@@ -55,7 +55,6 @@ class Fitter:
                 self.lr_list.append(lr)
             
             t = time.time()
-            summary_loss, val_mAP = self.validation(validation_loader, val_dataset)
             summary_loss = self.train_one_epoch(train_loader)
             self.log_each_epoch(t, summary_loss)
 
@@ -70,9 +69,6 @@ class Fitter:
                 self.log(f'Val loss improved from {self.best_summary_loss} to {summary_loss.avg}, save checkpoint to {save_path}')
                 self.best_summary_loss = summary_loss.avg
                 self.save(save_path)
-
-            # if self.config.validation_scheduler:
-            #     self.scheduler.step(metrics=1)
 
             self.epoch += 1
 
@@ -94,10 +90,10 @@ class Fitter:
                 detections = self.model(images, torch.tensor([1]*images.shape[0]).float().cuda())
                 summary_loss.update(loss.detach().item(), batch_size)
 
-                self.evaluate_map and evaluator.add_predictions(detections, targets)
+                # self.evaluate_map and evaluator.add_predictions(detections, targets)
         
-        mean_ap = evaluator.evaluate() if self.evaluate_map else "NaN"
-        return summary_loss, mean_ap
+        # mean_ap = evaluator.evaluate() if self.evaluate_map else "NaN"
+        return summary_loss, "NaN"
 
     def train_one_epoch(self, train_loader):
         self.model.train()
