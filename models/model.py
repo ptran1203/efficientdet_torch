@@ -177,8 +177,8 @@ def get_model(phi, num_classes, image_size, checkpoint_path, is_inference=False,
             print(f'Weight loaded from {checkpoint_path}')
             del checkpoint
             gc.collect()
-        except:
-            print(f'Could not load weight from {checkpoint_path}')
+        except Exception as e:
+            print(f'Could not load weight from {checkpoint_path}', e)
 
     if is_inference:
         net = DetBenchEval(net, config)
