@@ -50,3 +50,4 @@ val_huesat_limit: 0.2
 brightness_contrast: 0.1
 brightness_limit: 0.2
 contrast_limit: 0.2
+env: script
