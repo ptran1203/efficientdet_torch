@@ -7,7 +7,8 @@ import pandas as pd
 import argparse
 import os
 import yaml
-from utils import dict_to_config, WarmupCosineSchedule
+from utils import dict_to_config
+from utils.scheduler import WarmupCosineSchedule
 
 def get_config(cfg_file, args):
     with open(cfg_file) as f:
