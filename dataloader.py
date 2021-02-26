@@ -103,6 +103,7 @@ class DatasetRetriever(Dataset):
 
         records = self.marking[self.marking['image_id'] == image_id]
         boxes = records[['x_min', 'y_min', 'x_max', 'y_max']].values
+        # 0 is background
         labels = records['class_id'].values + 1
 
         return image, boxes, labels
