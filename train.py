@@ -7,7 +7,7 @@ import pandas as pd
 import argparse
 import os
 import yaml
-from utils import dict_to_config
+from utils import ConfigFromDict
 from utils.scheduler import WarmupCosineSchedule
 
 def get_config(cfg_file, args):
@@ -16,7 +16,7 @@ def get_config(cfg_file, args):
         cfg['epochs'] = args.epochs
         cfg['fold'] = args.fold
         print(yaml.dumps(cfg))
-        return dict_to_config(cfg)
+        return ConfigFromDict(cfg)
 
 def get_train_transforms(config):
     central_size = int(gimage_size * 1.0)
