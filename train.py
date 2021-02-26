@@ -101,6 +101,7 @@ class TrainGlobalConfig:
         )
         self.folder = config.weight_dir
         self.batch_size = config.batch_size
+        self.env = config.env
 
 
 if __name__ == '__main__':
