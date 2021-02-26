@@ -77,7 +77,7 @@ class Fitter:
     def validation(self, val_loader, val_dataset):
         self.model.eval()
         summary_loss = AverageMeter()
-        evaluator = CocoEvaluator(val_dataset)
+        # evaluator = CocoEvaluator(val_dataset)
         for step, (images, targets, image_ids) in enumerate(val_loader):
             with torch.no_grad():
                 images = torch.stack(images)
