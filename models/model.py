@@ -55,8 +55,8 @@ class Fitter:
                 self.lr_list.append(lr)
             
             t = time.time()
-            # summary_loss = self.train_one_epoch(train_loader)
-            summary_loss = 1
+            summary_loss, val_mAP = self.validation(validation_loader, val_dataset)
+            summary_loss = self.train_one_epoch(train_loader)
             self.log_each_epoch(t, summary_loss)
 
             t = time.time()
