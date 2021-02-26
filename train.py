@@ -90,7 +90,7 @@ class TrainGlobalConfig:
     validation_scheduler = False
     SchedulerClass = WarmupCosineSchedule
 
-    def __init__(config):
+    def __init__(self, config):
         self.model_name = f'efficientdet_d{config.phi}_fold{config.fold}'
         self.warmup_epochs = config.warmup_epochs
         self.lr = config.lr
