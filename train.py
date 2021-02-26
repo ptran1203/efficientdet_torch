@@ -151,4 +151,4 @@ if __name__ == '__main__':
                     is_inference=False)
 
     train_config = TrainGlobalConfig(config)
-    run_training(model, train_config, train_dataset, val_dataset)
+    run_training(model, train_config, train_dataset, val_dataset, env='script')

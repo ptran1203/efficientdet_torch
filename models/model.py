@@ -13,13 +13,12 @@ from tqdm import tqdm, tqdm_notebook
 from utils import AverageMeter
 from ensemble_boxes import weighted_boxes_fusion, nms
 
-
-
 class Fitter:
 
     def __init__(self, model, device, config, base_dir='/content'):
         self.config = config
         self.epoch = 0
+        self.tqdm = tqdm_notebook if config.env == 'notebook' else tqdm
 
         self.base_dir = config.folder
         if not os.path.exists(self.base_dir):
@@ -96,8 +95,7 @@ class Fitter:
         self.model.train()
         summary_loss = AverageMeter()
         t = time.time()
-        # train on colab use tqdm_notebook
-        for step, (images, targets, image_ids) in  enumerate(tqdm_notebook(train_loader)):
+        for step, (images, targets, image_ids) in  enumerate(self.tqdm(train_loader)):
 
             images = torch.stack(images)
             images = images.to(self.device).float()
