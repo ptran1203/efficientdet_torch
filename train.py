@@ -113,8 +113,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     checkpoint = args.checkpoint
-    image_dir = args.image_dir
-    data_csv = args.data_csv
     fold = args.fold
 
     config = get_config(args.cfg, args)
