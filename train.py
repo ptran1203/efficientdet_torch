@@ -49,7 +49,7 @@ def get_train_transforms(config):
     if config.brightness_contrast:
         augments.append(A.RandomBrightnessContrast(
             brightness_limit=config.brightness_limit, 
-            contrast_limit=config.constant_limit,
+            contrast_limit=config.contrast_limit,
             p=config.brightness_contrast
         ))
     
