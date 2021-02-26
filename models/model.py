@@ -17,7 +17,7 @@ from ensemble_boxes import weighted_boxes_fusion, nms
 
 class Fitter:
 
-    def __init__(self, model, device, config, base_dir='/content', evaluate_map=False):
+    def __init__(self, model, device, config, base_dir='/content', evaluate_map=1):
         self.config = config
         self.epoch = 0
         self.tqdm = tqdm_notebook if config.env == 'notebook' else tqdm
