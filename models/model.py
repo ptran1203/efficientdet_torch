@@ -9,13 +9,15 @@ from datetime import datetime
 from torch.utils.data.sampler import SequentialSampler, RandomSampler
 from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain, DetBenchEval
 from effdet.efficientdet import HeadNet
+from effdet.evaluator import CocoEvaluator
 from tqdm import tqdm, tqdm_notebook
 from utils import AverageMeter
 from ensemble_boxes import weighted_boxes_fusion, nms
 
+
 class Fitter:
 
-    def __init__(self, model, device, config, base_dir='/content'):
+    def __init__(self, model, device, config, base_dir='/content', evaluate_map=False):
         self.config = config
         self.epoch = 0
         self.tqdm = tqdm_notebook if config.env == 'notebook' else tqdm
@@ -29,6 +31,7 @@ class Fitter:
 
         self.model = model
         self.device = device
+        self.evaluate_map = evaluate_map
 
         param_optimizer = list(self.model.named_parameters())
         no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
@@ -43,7 +46,7 @@ class Fitter:
         self.log(f'Fitter prepared. Device is {self.device}')
         
 
-    def fit(self, train_loader, validation_loader):
+    def fit(self, train_loader, validation_loader, val_dataset):
         for e in range(self.config.n_epochs):
             if self.config.verbose:
                 lr = self.optimizer.param_groups[0]['lr']
@@ -57,9 +60,9 @@ class Fitter:
             self.log_each_epoch(t, summary_loss)
 
             t = time.time()
-            summary_loss = self.validation(validation_loader)
+            summary_loss, val_mAP = self.validation(validation_loader)
 
-            self.log_each_epoch(t, summary_loss, is_training=False)
+            self.log_each_epoch(t, summary_loss, is_training=False, val_mAP=val_mAP)
 
             if summary_loss.avg < self.best_summary_loss:
                 self.model.eval()
@@ -78,6 +81,7 @@ class Fitter:
     def validation(self, val_loader):
         self.model.eval()
         summary_loss = AverageMeter()
+        evaluator = CocoEvaluator(val_dataset)
         for step, (images, targets, image_ids) in enumerate(val_loader):
             with torch.no_grad():
                 images = torch.stack(images)
@@ -87,14 +91,19 @@ class Fitter:
                 labels = [target['labels'].to(self.device).float() for target in targets]
 
                 loss, _, _ = self.model(images, boxes, labels)
+                detections = self.model(images, torch.tensor([1]*images.shape[0]).float().cuda())
                 summary_loss.update(loss.detach().item(), batch_size)
 
-        return summary_loss
+                self.evaluate_map and evaluator.add_predictions(detections, targets)
+        
+        mean_ap = evaluator.evaluate() if self.evaluate_map else "NaN"
+        return summary_loss, mean_ap
 
     def train_one_epoch(self, train_loader):
         self.model.train()
         summary_loss = AverageMeter()
         t = time.time()
+
         for step, (images, targets, image_ids) in  enumerate(self.tqdm(train_loader)):
 
             images = torch.stack(images)
@@ -137,13 +146,15 @@ class Fitter:
         self.epoch = checkpoint['epoch'] + 1
         
 
-    def log_each_epoch(self, t, loss, is_training=True):
+    def log_each_epoch(self, t, loss, is_training=True, val_mAP="NaN"):
         stage = 'train' if is_training else 'val'
 
         if is_training:
             self.log(f"\nEpoch - [{self.epoch}/{self.config.n_epochs}] - {(time.time() - t):.5f} secs")
             self.log(f"Learning rate : {self.lr_list[-1]:.4e} ")
 
+        if val_mAP != "NaN":
+            self.log(f"val mAP {val_mAP}")
         self.log(f"+ {stage} loss - {loss.avg:.5f}")
 
     def log(self, message):
@@ -215,7 +226,7 @@ def run_training(model, TrainGlobalConfig, train_dataset, val_dataset):
     )
 
     fitter = Fitter(model=model, device=device, config=TrainGlobalConfig)
-    fitter.fit(train_loader, val_loader)
+    fitter.fit(train_loader, val_loader, val_dataset)
 
 def merge_preds(predictions, image_size=512,
                 iou_thr=0.5, weights=None, merge_box='nms'):
