@@ -134,7 +134,7 @@ if __name__ == '__main__':
         image_dir=config.image_dir,
     )
 
-    train_dataset = DatasetRetrieverV2(
+    train_dataset = DatasetRetriever(
         image_ids=train_imgs,
         marking=dataframe,
         transforms=get_train_transforms(config),
