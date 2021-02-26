@@ -144,7 +144,7 @@ if __name__ == '__main__':
         random_intensity=config.random_intensity,
     )
 
-    model = get_model(phi=phi,
+    model = get_model(phi=config.phi,
                     num_classes=config.num_classes,
                     image_size=config.image_size,
                     checkpoint_path=checkpoint,
