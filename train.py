@@ -15,7 +15,7 @@ def get_config(cfg_file, args):
         cfg = yaml.load(f, Loader=yaml.SafeLoader)
         cfg['epochs'] = args.epochs
         cfg['fold'] = args.fold
-        print(yaml.dumps(cfg))
+        print(yaml.dump(cfg))
         return ConfigFromDict(cfg)
 
 def get_train_transforms(config):
