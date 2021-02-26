@@ -78,7 +78,7 @@ class Fitter:
 
         self._plot_lr()
 
-    def validation(self, val_loader):
+    def validation(self, val_loader, val_dataset):
         self.model.eval()
         summary_loss = AverageMeter()
         evaluator = CocoEvaluator(val_dataset)
