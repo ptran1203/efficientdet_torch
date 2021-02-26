@@ -15,6 +15,7 @@ def get_config(cfg_file, args):
         cfg = yaml.load(f, Loader=yaml.SafeLoader)
         cfg['epochs'] = args.epochs
         cfg['fold'] = args.fold
+        cfg['env'] == 'script' # or notebook
         print(yaml.dump(cfg))
         return ConfigFromDict(cfg)
 
@@ -151,4 +152,4 @@ if __name__ == '__main__':
                     is_inference=False)
 
     train_config = TrainGlobalConfig(config)
-    run_training(model, train_config, train_dataset, val_dataset, env='script')
+    run_training(model, train_config, train_dataset, val_dataset)
