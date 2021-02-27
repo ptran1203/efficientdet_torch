@@ -16,6 +16,7 @@ def get_config(cfg_file, args):
         cfg['epochs'] = args.epochs
         cfg['fold'] = args.fold
         cfg['phi'] = args.phi
+        cfg['batch_size'] = args.batch_size
         print(yaml.dump(cfg))
         return ConfigFromDict(cfg)
 
@@ -112,7 +113,7 @@ if __name__ == '__main__':
     parser.add_argument('--cfg', type=str, default='config.yaml')
     parser.add_argument('--epochs', type=int, default=30)
     parser.add_argument('--phi', type=int, default=0)
-
+    parser.add_argument('--batch_size', type=int, default=2)
 
     args = parser.parse_args()
     checkpoint = args.checkpoint
