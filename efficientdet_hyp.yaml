@@ -22,7 +22,6 @@ weight_dir: /content/drive/MyDrive/efficientdet/weights
 # Training config
 batch_size: 4
 image_size: 640
-phi: 4 # effdetD{phi}
 num_classes: 14
 lr: 0.001
 warmup_epochs: 3
