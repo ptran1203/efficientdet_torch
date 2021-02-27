@@ -87,7 +87,7 @@ class Fitter:
                 labels = [target['labels'].to(self.device).float() for target in targets]
 
                 loss, _, _ = self.model(images, boxes, labels)
-                detections = self.model(images, torch.tensor([1]*images.shape[0]).float().cuda())
+                # detections = self.model(images, torch.tensor([1]*images.shape[0]).float().cuda())
                 summary_loss.update(loss.detach().item(), batch_size)
 
                 # self.evaluate_map and evaluator.add_predictions(detections, targets)
