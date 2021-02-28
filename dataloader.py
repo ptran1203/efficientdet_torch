@@ -58,10 +58,11 @@ class DatasetRetriever(Dataset):
             save_dir = '/content/train_images'
             not os.path.exists(save_dir) and os.mkdir(save_dir)
             for i in range(self.save_sample):
-                image, boxes, labels = self.__getitem__(0)
-                print(image.shape)
+                image, target, _ = self.__getitem__(0)
+                image = image.numpy()
+                boxes = target['boxes'].numpy()
+                labels = target['labels'].numpy()
                 image = image.transpose((1, 2, 0))
-                print(image.shape)
                 visualize_detections(image, boxes, labels, save_path=os.path.join(save_dir, f'train_example_{i}.png'))
 
     def create_class_index(self):
