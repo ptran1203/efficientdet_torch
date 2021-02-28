@@ -61,9 +61,10 @@ class DatasetRetriever(Dataset):
                 image, target, _ = self.__getitem__(0)
                 image = image.numpy()
                 boxes = target['boxes'].numpy()
+                boxes = boxes[:, [1, 0, 3, 2]]
                 labels = target['labels'].numpy()
                 image = image.transpose((1, 2, 0))
-                visualize_detections(image, boxes, labels, save_path=os.path.join(save_dir, f'train_example_{i}.png'))
+                visualize_detections(image * 255.0, boxes, labels, save_path=os.path.join(save_dir, f'train_example_{i}.png'))
 
     def create_class_index(self):
         if self.test:
