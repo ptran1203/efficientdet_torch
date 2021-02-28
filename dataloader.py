@@ -35,6 +35,8 @@ class DatasetRetriever(Dataset):
         self.save_sample = save_sample
 
         self.p_normal = 0.5
+        self.p_mixup = 0.0
+        self.p_mosaic = 0.0
         if mosaic and not mixup:
             self.p_mosaic = 0.5
         elif mixup and not mosaic:
