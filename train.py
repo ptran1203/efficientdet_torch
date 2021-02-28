@@ -146,6 +146,8 @@ if __name__ == '__main__':
         image_size=config.image_size,
         image_dir=config.image_dir,
         mosaic=config.mosaic,
+        mixup=config.mixup,
+        save_sample=5,
         random_intensity=config.random_intensity,
     )
 
