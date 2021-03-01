@@ -23,7 +23,7 @@ if platform.system() == "Darwin":
     aratio = 2 / 4
 else:
     IMAGE_DIR = "/home/ubuntu/Documents/archive/vinbigdata-coco-dataset-with-wbf-3x-downscaled/train_images"
-    aratio = 2 / 3
+    aratio = 1 / 3
 
 def filter_prediction(
     pred_boxes,
@@ -84,6 +84,24 @@ def filter_prediction(
 
     return correct_labels, per_label_correct, confuse_predictions
 
+def scale_boxes(boxes, w, h):
+    is_list = False
+    if isinstance(boxes, list):
+        boxes = np.array(boxes)
+        is_list = True
+
+    sw = w / 640
+    sh = h / 640
+
+    _boxes = np.stack([
+        boxes[:, 0] * sw,
+        boxes[:, 1] * sh,
+        boxes[:, 2] * sw,
+        boxes[:, 3] * sh,
+    ], axis=1)
+
+    return _boxes
+
 def run_single_file(filename, confuse_thr, train_df):
     def update_count(g_per_class_correct, per_class_correct):
         # 14 classes
@@ -115,10 +133,12 @@ def run_single_file(filename, confuse_thr, train_df):
         gt_labels = train_df.loc[train_df.image_id==image_id, ['class_id']].values[0]
         im_w, im_h = train_df.loc[train_df.image_id == image_id, ['width', 'height']].values[0]
 
-        gt_boxes[:, [0, 2]] *= im_w
-        gt_boxes[:, [1, 3]] *= im_h
+        # Scale prediction boxes
+        pred_boxes = scale_boxes(pred_boxes, w=im_w, h=im_h)
 
-        # Compare label 0
+        # produced by 640
+        # gt_boxes[:, [0, 2]] *= im_w / 640
+        # gt_boxes[:, [1, 3]] *= im_h / 640
 
         correct_pred, per_label_correct, confuse_prediction = filter_prediction(
             pred_boxes,
@@ -210,7 +230,7 @@ def remove_files_in_dir(dir_):
             os.unlink(path)
 
 if __name__ == "__main__":
-    confuse_thr = 0.7
+    confuse_thr = 0.5
     input_dir = "pseudo_labeling/input"
     output_dir = "pseudo_labeling/output"
     not os.path.exists(output_dir) and os.mkdir(output_dir)
