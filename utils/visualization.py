@@ -5,6 +5,7 @@ import numpy as np
 
 def visualize_detections(
     image, boxes, classes, scores=None, figsize=(6, 6), linewidth=1, class_map=LABEL_MAP,
+    save_path=''
 ):
     """Visualize Detections"""
     if scores is None:
@@ -32,5 +33,5 @@ def visualize_detections(
             clip_box=ax.clipbox,
             clip_on=True,
         )
-
-    plt.show()
+    
+    plt.show() if not save_path else plt.savefig(save_path)

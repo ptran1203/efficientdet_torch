@@ -1,10 +1,11 @@
 
 from torch.utils.data import Dataset
+from utils.visualization import visualize_detections
 import torch
 import numpy as np
 import cv2
 import random
-
+import os
 class DatasetRetriever(Dataset):
 
     def __init__(
@@ -15,7 +16,9 @@ class DatasetRetriever(Dataset):
         test=False,
         image_size=640,
         mosaic=True,
+        mixup=False,
         random_intensity=0,
+        save_sample=0,
         image_dir='/content',
     ):
         super().__init__()
@@ -28,11 +31,40 @@ class DatasetRetriever(Dataset):
         self.image_dir = image_dir
         self.mosaic_border = [-image_size // 2, -image_size // 2]
         self.mosaic = mosaic
+        self.mixup = mixup
+        self.save_sample = save_sample
+
+        self.p_normal = 0.5
+        self.p_mixup = 0.0
+        self.p_mosaic = 0.0
+        if mosaic and not mixup:
+            self.p_mosaic = 0.5
+        elif mixup and not mosaic:
+            self.p_mixup = 0.5
+        elif mixup and mosaic:
+            self.p_mosaic = self.p_mixup = self.p_normal = 0.33
+        else:
+            self.p_mosaic = self.p_mixup = 0.0
+            self.p_normal = 1.0
+
         self.random_intensity = random_intensity
         # HARD CODE
         self.num_classes = 14
         self.classes = list(range(self.num_classes))
         self.class_index_array = self.create_class_index()
+
+        # Save some example for visulizations
+        if self.save_sample > 0:
+            save_dir = '/content/train_images'
+            not os.path.exists(save_dir) and os.mkdir(save_dir)
+            for i in range(self.save_sample):
+                image, target, _ = self.__getitem__(0)
+                image = image.numpy()
+                boxes = target['boxes'].numpy()
+                boxes = boxes[:, [1, 0, 3, 2]]
+                labels = target['labels'].numpy()
+                image = image.transpose((1, 2, 0))
+                visualize_detections(image * 255.0, boxes, labels, save_path=os.path.join(save_dir, f'train_example_{i}.png'))
 
     def create_class_index(self):
         if self.test:
@@ -52,13 +84,12 @@ class DatasetRetriever(Dataset):
 
     def __getitem__(self, index: int):
         image_id = self.image_ids[index]
-        
-        if self.test or not self.mosaic or random.random() >= 0.5:
-            image, boxes, labels = self.load_image_and_boxes(index)
-        else:
+        boxes = []
+        if not self.test and random.random() < self.p_mosaic:
             image, boxes, labels = self.load_mosaic(index)
-
-        if not len(boxes):
+        if not self.test and random.random() < self.p_mixup:
+            image, boxes, labels = self.load_mixup(index)
+        if self.test or not len(boxes):
             image, boxes, labels = self.load_image_and_boxes(index)
 
         target = {}
@@ -161,6 +192,17 @@ class DatasetRetriever(Dataset):
         result_labels = result_labels[valid_indices]
 
         return result_image, result_boxes, result_labels
+
+    def load_mixup(self, index):
+        img, boxes, labels = self.load_image_and_boxes(index)
+        img2, boxes2,labels2 = self.load_image_and_boxes(index)
+
+        r = np.random.beta(8.0, 8.0)  # mixup ratio, alpha=beta=8.0
+        img = (img * r + img2 * (1 - r))
+        labels = np.concatenate((labels, labels2), 0)
+        boxes = np.concatenate((boxes, boxes2), 0)
+
+        return img, boxes, labels
 
 def get_img_list_from_df(fold_df, folds):
     return fold_df[fold_df['fold'].isin(folds)]['image_id'].values

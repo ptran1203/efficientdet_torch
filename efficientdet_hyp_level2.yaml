@@ -1,0 +1,38 @@
+# Path
+weight_dir: /content/drive/MyDrive/efficientdet/weights
+fold_csv: /content/train_record/train/fold.csv
+data_csv: /content/train_record/train/train_df.csv
+image_dir: /content/train_record/train
+weight_dir: /content/drive/MyDrive/efficientdet/weights
+
+# Training config
+batch_size: 4
+image_size: 640
+num_classes: 14
+lr: 0.0001
+warmup_epochs: 0
+
+# Augmentations
+
+gamma_limit_min: 80
+gamma_limit_max: 120
+mixup: 0.0
+mosaic: 1.0
+flipud: 0.0
+fliplr: 0.5
+shear: 0.0
+translate: 0.1
+random_intensity: 30
+shift_scale_rot: 0.5
+shift_limit: 0.1
+scale_limit: 0.4
+rot_limit: 5
+gaussian_blur: 0.4
+hue_sat: 0.4
+hue_limit: 0.2
+sat_limit: 0.2 
+val_huesat_limit: 0.2
+brightness_contrast: 0.4
+brightness_limit: 0.2
+contrast_limit: 0.2
+env: script

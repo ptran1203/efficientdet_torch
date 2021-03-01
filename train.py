@@ -15,6 +15,8 @@ def get_config(cfg_file, args):
         cfg = yaml.load(f, Loader=yaml.SafeLoader)
         cfg['epochs'] = args.epochs
         cfg['fold'] = args.fold
+        cfg['phi'] = args.phi
+        cfg['batch_size'] = args.batch_size
         print(yaml.dump(cfg))
         return ConfigFromDict(cfg)
 
@@ -110,6 +112,8 @@ if __name__ == '__main__':
     parser.add_argument('--fold', type=int, default=0)
     parser.add_argument('--cfg', type=str, default='config.yaml')
     parser.add_argument('--epochs', type=int, default=30)
+    parser.add_argument('--phi', type=int, default=0)
+    parser.add_argument('--batch_size', type=int, default=2)
 
     args = parser.parse_args()
     checkpoint = args.checkpoint
@@ -142,6 +146,8 @@ if __name__ == '__main__':
         image_size=config.image_size,
         image_dir=config.image_dir,
         mosaic=config.mosaic,
+        mixup=config.mixup,
+        save_sample=5,
         random_intensity=config.random_intensity,
     )
 

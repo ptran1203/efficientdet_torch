@@ -7,6 +7,8 @@ import os
 import cv2
 import numpy as np
 
+def round_int(x):
+    return int(round(x))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -67,13 +69,13 @@ if __name__ == '__main__':
         if len(boxes):
             pred = []
             for box, cls, score in zip(boxes, labels, scores):
-                x1, y1, x2, y2 = [int(v) for v in box / gimage_size]
+                x1, y1, x2, y2 = [v for v in box / gimage_size]
                 x1 *= w
                 x2 *= w
                 y1 *= h
                 y2 *= h
 
-                prediction_text = f"{int(cls) - 1} {score} {round(x1)} {round(y1)} {round(x2)} {round(y2)}"
+                prediction_text = f"{int(cls) - 1} {score} {round_int(x1)} {round_int(y1)} {round_int(x2)} {round_int(y2)}"
                 pred.append(prediction_text)
             submission["PredictionString"].append(" ".join(pred))
         else:
