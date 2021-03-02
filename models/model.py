@@ -77,7 +77,6 @@ class Fitter:
     def validation(self, val_loader, val_dataset):
         self.model.eval()
         summary_loss = AverageMeter()
-        # evaluator = CocoEvaluator(val_dataset)
         for step, (images, targets, image_ids) in enumerate(val_loader):
             with torch.no_grad():
                 images = torch.stack(images)
@@ -87,21 +86,15 @@ class Fitter:
                 labels = [target['labels'].to(self.device).float() for target in targets]
 
                 loss, _, _ = self.model(images, boxes, labels)
-                # detections = self.model(images, torch.tensor([1]*images.shape[0]).float().cuda())
                 summary_loss.update(loss.detach().item(), batch_size)
 
-                # self.evaluate_map and evaluator.add_predictions(detections, targets)
-        
-        # mean_ap = evaluator.evaluate() if self.evaluate_map else "NaN"
         return summary_loss, "NaN"
 
     def train_one_epoch(self, train_loader):
         self.model.train()
         summary_loss = AverageMeter()
-        t = time.time()
-
         for step, (images, targets, image_ids) in  enumerate(self.tqdm(train_loader)):
-
+            
             images = torch.stack(images)
             images = images.to(self.device).float()
             batch_size = images.shape[0]
