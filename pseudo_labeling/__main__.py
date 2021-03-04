@@ -79,6 +79,16 @@ def filter_prediction(
                     "truth_boxes": tbox.tolist(),
                 })
 
+        if pscore >= 0.8:
+            confuse_predictions.append({
+                    "truth_label": 0.0,
+                    "predict": int(plabel),
+                    "confidence": 0.0,
+                    "iou": 0.0,
+                    "pred_boxes": pbox.tolist(),
+                    "truth_boxes": tbox.tolist(),
+                })
+
     for tbox, tlabel in zip(truth_boxes, truth_labels):
         per_label_correct[int(tlabel)]["total"] += 1
 
