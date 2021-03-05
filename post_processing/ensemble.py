@@ -30,7 +30,7 @@ def write_csv(df, fname):
 def get_weight(weights, idx, cls):
     return weights[idx][cls] if isinstance(weights[idx], dict) else weights[idx]
 
-def parse_pred(pred, mode='center'):
+def parse_pred(pred, mode='xyxy'):
     '''
     mode: center|xyxy|xywh
     '''
@@ -64,11 +64,6 @@ def convert(pred, mode):
     for p in pred:
         # center_x, center_y, (x2 - x1) / 2, (y2 - y1) / 2, cls, conf
         x1, y1, x2, y2, cls, score = p
-        # x1 /= 3
-        # x2 /= 3
-        # y1 /= 3
-        # y2 /= 3
-
         boxes.append([x1, y1, x2, y2])
         labels.append(cls)
         scores.append(score)
@@ -121,6 +116,10 @@ def re_format_ensemble(pred, w, h):
     boxes = normbox(boxes, 1 / w, 1 / h)
     for box, label, score in zip(boxes, labels, scores):
         x1, y1, x2, y2 = box
+        x1 = int(round(x1))
+        x2 = int(round(x2))
+        y1 = int(round(y1))
+        y2 = int(round(y2))
         res.append(f"{label} {score} {x1} {y1} {x2} {y2}")
 
     return " ".join(res)
@@ -180,7 +179,7 @@ if __name__ == "__main__":
         "PredictionString": ens_pred,
     })
 
-    out_file = f"ensemble_iou{iou_thresh}.csv"
+    out_file = f"ensemble_iou{iou_thresh}_{args.method}.csv"
     write_csv(ens_df, out_file)
 
     submission_script = "kaggle competitions submit -c vinbigdata-chest-xray-abnormalities-detection -f"

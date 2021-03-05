@@ -61,15 +61,15 @@ def visualize_detections(
     return ax
 
 def convert(pred, mode):
+    scale = 3
     boxes, labels, scores = [], [], []
     for p in pred:
         # center_x, center_y, (x2 - x1) / 2, (y2 - y1) / 2, cls, conf
-        cenx, ceny, w, h, cls, score = p
-        x1, x2, y1, y2 = getCoords([cenx, ceny, w, h], mode=mode)
-        x1 /= 3
-        x2 /= 3
-        y1 /= 3
-        y2 /= 3
+        x1, y1, x2, y2, cls, score = p
+        x1 = int(x1 / scale)
+        x2 = int(x2 / scale)
+        y1 = int(y1 / scale)
+        y2 = int(y2 / scale)
 
         boxes.append([x1, y1, x2, y2])
         labels.append(cls)
@@ -78,8 +78,8 @@ def convert(pred, mode):
     return boxes, labels, scores
 
 
-from ensemble import GeneralEnsemble, parse_pred, computeIOU, getCoords, get_wh, normbox
-from ensemble_boxes import weighted_boxes_fusion, nms
+from ensemble import parse_pred, get_wh, normbox
+from ensemble_boxes import weighted_boxes_fusion as wbf, nms
 
 import os
 from PIL import Image
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     mode = 'xyxy'
 
-    image_id = '74b23792db329cff5843e36efb8aa65a'
+    image_id = '83caa8a85e03606cf57e49147d7ac569'
     img = Image.open(os.path.join(IMAGE_DIR, f'{image_id}.jpg'))
 
     w, h = get_wh(test_df, image_id)
@@ -121,16 +121,16 @@ if __name__ == '__main__':
             scores,
             save_path=os.path.join(img_dirs, f'model_{i}.png')
         )
-        
-        boxes_list.append(_normbox(boxes, w, h))
+
+        boxes_list.append(normbox(boxes, w, h))
         labels_list.append(labels)
         score_list.append(scores)
 
     # boxes, labels, scores = nms(boxes_list, labels_list, score_list, 0.5)
-    boxes, scores, labels = nms(boxes_list, score_list, labels_list, iou_thr=0.5)
+    boxes, scores, labels = wbf(boxes_list, score_list, labels_list, iou_thr=0.5)
 
     # boxes, labels, scores = convert(ens, mode=mode)
-    boxes = _normbox(boxes, 1/w, 1/h)
+    boxes = normbox(boxes, 1/w, 1/h)
     print(len(boxes))
     visualize_detections(
         img,
