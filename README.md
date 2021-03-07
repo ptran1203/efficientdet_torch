@@ -10,3 +10,5 @@
 |YOLOV5x | translate: 0.2, scale: 0.6, label smoothing: 0.01  | 4 | 0.416 | 0.097 |
 |YOLOV5x | translate: 0.2, scale: 0.6  | 0 | 0.405 | 0.138 |
 |YOLOV5x | translate: 0.2, scale: 0.6, mosaic: 0.7  | 0 | 0.399 | **0.170** |
+|YOLOV5x | translate: 0.2, scale: 0.6, mosaic: 0.8  | 0 | 0.393 | 0.129 |
+|YOLOV5x | translate: 0.2, scale: 0.6, mosaic: 0.7  | 4 | 0.415 | 0.130 |
