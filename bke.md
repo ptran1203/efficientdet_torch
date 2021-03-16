@@ -1,10 +1,20 @@
 
-https://www.anhngumshoa.com/uploads/files/TOEIC_sw_sample_tests.pdf
+# 1. Writing
 
-# Writing
+## 1.1 Response to email
 
-https://kimnhungtoeic.com/sua-de-thi-toeic-writing-mau/
+### Example 1
 
-# Speaking
+![1](./bke_imgs/mail1.png)
 
-https://www.englishclub.com/esl-exams/ets-toeic-practice-speaking.htm
+![1](./bke_imgs/mail1_a.png)
+
+### Example 2
+
+![1](./bke_imgs/mail2.png)
+
+![1](./bke_imgs/mail2_a.png)
+
+## 1.2 Essay - Bài tỏ quan điểm
+
+### Example 1
