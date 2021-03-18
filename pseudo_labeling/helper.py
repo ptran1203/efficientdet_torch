@@ -91,6 +91,9 @@ def parse_boxes(values):
     return np.array([to_array(v) for v in boxes])
 
 def computeIOU(box1, box2):
+    if not len(box1) or not len(box2):
+        return 0
+
     x11, y11, x12, y12 = box1
     x21, y21, x22, y22 = box2
 

@@ -45,10 +45,14 @@ def filter_prediction(
     }
 
     confuse_predictions = []
+    iou_thr = 0.45
+    confuse_thr = 0.5
 
     for pbox, pscore, plabel in zip(pred_boxes, pred_scores, pred_labels):
         # Change data type
+        isset = False
         for tbox, tlabel in zip(truth_boxes, truth_labels):
+            
             int_label = int(tlabel)
             iou = computeIOU(pbox, tbox)
 
@@ -60,6 +64,7 @@ def filter_prediction(
                     correct_labels.append(plabel)
 
             if plabel != tlabel and iou >= iou_thr and pscore >= confuse_thr:
+                isset = True
                 confuse_predictions.append({
                     "truth_label": int(tlabel),
                     "predict": int(plabel),
@@ -70,6 +75,7 @@ def filter_prediction(
                 })
 
             elif plabel == tlabel and plabel == 2 and 0.5 > iou >= 0.1 and pscore >= 0.3:
+                isset = True
                 confuse_predictions.append({
                     "truth_label": int(tlabel),
                     "predict": int(plabel),
@@ -79,15 +85,15 @@ def filter_prediction(
                     "truth_boxes": tbox.tolist(),
                 })
 
-        if pscore >= 0.8:
-            confuse_predictions.append({
-                    "truth_label": 0.0,
-                    "predict": int(plabel),
-                    "confidence": 0.0,
-                    "iou": 0.0,
-                    "pred_boxes": pbox.tolist(),
-                    "truth_boxes": tbox.tolist(),
-                })
+        # if pscore >= 0.6 and not isset and int(plabel) not in [0, 3]:
+        #     confuse_predictions.append({
+        #             "truth_label": -1,
+        #             "predict": int(plabel),
+        #             "confidence": float(pscore),
+        #             "iou": 0.0,
+        #             "pred_boxes": pbox.tolist(),
+        #             "truth_boxes": [1,1,1,1],
+        #         })
 
     for tbox, tlabel in zip(truth_boxes, truth_labels):
         per_label_correct[int(tlabel)]["total"] += 1
@@ -240,7 +246,7 @@ def remove_files_in_dir(dir_):
             os.unlink(path)
 
 if __name__ == "__main__":
-    confuse_thr = 0.5
+    confuse_thr = 0.6
     input_dir = "pseudo_labeling/input"
     output_dir = "pseudo_labeling/output"
     not os.path.exists(output_dir) and os.mkdir(output_dir)
@@ -285,21 +291,24 @@ if __name__ == "__main__":
         # Remove old images
         remove_files_in_dir("pseudo_labeling/images")
         for conf in preds:
-            image_path = os.path.join(IMAGE_DIR, conf['image_id'] + ".jpg")
-            if not os.path.exists(image_path):
-                print(f"File not exist, skip {conf['image_id']}")
-                continue
+            try:
+                image_path = os.path.join(IMAGE_DIR, conf['image_id'] + ".jpg")
+                if not os.path.exists(image_path):
+                    print(f"File not exist, skip {conf['image_id']}")
+                    continue
 
-            visualize_detections(
-                Image.open(image_path),
-                boxes=[conf["pred_boxes"]],
-                classes=[conf["predict"]],
-                scores=[conf["confidence"]],
-                box_true=[conf["truth_boxes"]],
-                label_true=[conf["truth_label"]],
-                save_path=f"pseudo_labeling/images/confuse_{conf['image_id']}.jpg",
-                title=f"Pre: {label_map[conf['predict']]} True: {label_map[conf['truth_label']]} con: {conf['consensus']}"
-            )
+                gt = label_map.get(conf['truth_label'], "Background")
+                visualize_detections(
+                    Image.open(image_path),
+                    boxes=[conf["pred_boxes"]],
+                    classes=[conf["predict"]],
+                    scores=[conf["confidence"]],
+                    box_true=[conf["truth_boxes"]],
+                    label_true=[conf["truth_label"]],
+                    save_path=f"pseudo_labeling/images/confuse_{conf['image_id']}.jpg",
+                    title=f"Pre: {label_map[conf['predict']]} True: {gt} con: {conf['consensus']}"
+                )
+            except Exception as e: print(e)
 
     with open("pseudo_labeling/confuse_prediction_ensemble.json", "w") as f:
         json.dump(preds, f, indent=4)
