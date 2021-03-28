@@ -140,7 +140,7 @@ if __name__ == "__main__":
     test_df = pd.read_csv('../test.csv')
 
     submission_info = []
-    weights = [1, 1]
+    weights = [1] * len(submission_files)
 
     img_ids_list = []
     boxes,labels,scores = [],[],[]
